@@ -6,11 +6,11 @@ export default class Pages extends Component {
   //       counter: 0,
   //     };
   //   }
-
   template() {
     return `
      <div>
-        <h2>Game Start</h2>
+        // <h2>Game Start</h2>
+        <button>Game Start</button>
       </div>
     `;
   }

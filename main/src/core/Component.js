@@ -4,7 +4,6 @@ export default class Component {
   $state; // 컴포넌트의 내부상태
 
   constructor($target, $props) {
-    console.log('$target: ', $target);
     this.$target = $target;
     this.$props = $props;
     this.setup();
