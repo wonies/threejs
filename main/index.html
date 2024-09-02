@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>My first three.js app</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
+        }
+      }
+    </script>
+    <link href="./src/threejs/main.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div id="app">
+      <!-- <script type="module" src="./src/threejs/main.js"></script> -->
+      <!-- <script type="module" src="./src/index.js"></script> -->
+    </div>
+    <script type="module" src="./src/index.js"></script>
+  </body>
+</html>
