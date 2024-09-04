@@ -11,7 +11,7 @@ export default class Login extends Component {
     return `
      <div>
         <h2>Login</h2>
-  
+
       </div>
     `;
   }

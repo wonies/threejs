@@ -1,36 +1,49 @@
 import Component from '../core/Component.js';
-// import '../style/pages/StartPage.css';
 
 export default class StartPage extends Component {
-  // constructor($target) {
-  //   super($target);
-  //   this.loadCSS('../style/pages/StartPage.css');
+  // template() {
+  //   return `
+  //   <div class="trans-box">
+  //     <span class="badge text-bg-primary">English</span>
+  //     <span class="badge text-bg-success">한국어</span>
+  //     <span class="badge text-bg-secondary">日本語</span>
+  //   </div>
+  //   <div class="start-page">
+  //       <h1 class="welcome">Welcome to the Game</h1>
+  //       <button type="button" class="btn btn-light">GAME START</button>
+  //     </div>
+  //   `;
   // }
-
-  // loadCSS(href) {
-  //   const link = document.createElement('link');
-  //   link.rel = 'stylesheet';
-  //   link.href = href;
-  //   document.head.appendChild(link);
-  // }
-
   template() {
     return `
+    <div class="start-page-wrapper">
+      <div class="trans-box">
+           <span class="badge text-bg-primary">English</span>
+           <span class="badge text-bg-success">한국어</span>
+           <span class="badge text-bg-secondary">日本語</span>
+      </div>
       <div class="start-page">
         <h1 class="welcome">Welcome to the Game</h1>
-        <button type="button" class="btn btn-light">GAME START</button>
+        <button type="button" class="btn btn-light start-button">GAME START</button>
       </div>
+    </div>
     `;
   }
+
 
   setEvent() {
     const { $target } = this;
     $target.addEventListener('click', ({ target }) => {
       if (target.classList.contains('btn')) {
         console.log('Game started!');
-        // 게임 시작 로직
+        this.routeToGame();
       }
     });
+  }
+  
+  routeToGame()
+  {
+    window.location.hash = '#ingame-1';
   }
 
   mounted() {}

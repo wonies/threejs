@@ -9,7 +9,6 @@ export default class Pages extends Component {
   template() {
     return `
      <div>
-        // <h2>Game Start</h2>
         <button>Game Start</button>
       </div>
     `;

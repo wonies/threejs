@@ -2,7 +2,7 @@ import StartPage from './StartPage.js';
 import { BackGround } from '../threejs/BackGround.js';
 import Component from '../core/Component.js';
 
-export default class FetchPage extends Component {
+export default class HomePage extends Component {
   template() {
     return `
       <div class="app-container">
