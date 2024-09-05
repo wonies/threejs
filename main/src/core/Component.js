@@ -4,8 +4,13 @@ export default class Component {
   $state;
 
   constructor($target, $props) {
+    console.log('Constructor');
+
     this.$target = $target;
+    // console.log('target : ', $target);
     this.$props = $props;
+
+    // console.log('props : ', $props);
     this.setup();
     this.render();
     this.setEvent();
@@ -28,10 +33,8 @@ export default class Component {
     this.$state = { ...this.$state, ...newState };
     this.render();
   }
-  
-  goToHome()
-  {
-  }
+
+  goToHome() {}
 
   addEvent(eventType, selector, callback) {
     this.$target.addEventListener(eventType, (event) => {

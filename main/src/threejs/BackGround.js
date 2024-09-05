@@ -1,89 +1,3 @@
-// import * as THREE from 'three';
-// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-// export class BackGround {
-//   constructor(container) {
-//     this.container = container;
-//     // this.onWindowResize = this.onWindowResize.bind(this);
-//     this.init();
-//   }
-
-//   init() {
-//     this.scene = new THREE.Scene();
-//     this.camera = new THREE.PerspectiveCamera(
-//       75,
-//       window.innerWidth / window.innerHeight,
-//       0.1,
-//       1000
-//     );
-//     this.renderer = new THREE.WebGLRenderer();
-//     this.renderer.setSize(window.innerWidth, window.innerHeight);
-//     this.container.appendChild(this.renderer.domElement);
-
-//     this.camera.position.set(0, 0, 40);
-//     this.camera.lookAt(0, 0, 0);
-
-//     const light = new THREE.AmbientLight(0xffffff, 1);
-//     this.scene.add(light);
-
-//     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
-//     this.loadBackground();
-//     this.loadModel();
-
-//     this.animate();
-
-//     // window.addEventListener('resize', onWindowResize);
-//     // function onWindowResize() {
-//     //   camera.aspect = window.innerWidth / window.innerHeight;
-//     //   camera.updateProjectionMatrix();
-
-//     //   renderer.setSize(window.innerWidth, window.innerHeight);
-//     // }
-//   }
-
-//   loadBackground() {
-//     const texture = new THREE.TextureLoader();
-//     texture.load('public/pongtable.jpg', (texture) => {
-//       this.scene.background = texture;
-//     });
-//   }
-
-//   // loadBackground() {
-//   //   const texture = new THREE.TextureLoader();
-//   //   texture.load('public/pongtable.jpg', (texture) => {
-//   //     const material = new THREE.MeshBasicMaterial({ map: texture });
-//   //     const geometry = new THREE.PlaneGeometry(100, 100);
-//   //     const mesh = new THREE.Mesh(geometry, material);
-//   //     mesh.position.z = -10;
-//   //     this.scene.add(mesh);
-//   //   });
-//   // }
-
-//   loadModel() {
-//     const loader = new GLTFLoader();
-//     loader.load('./scene.gltf', (gltf) => {
-//       this.racket = gltf.scene;
-//       this.racket.scale.set(1, 1, 1);
-//       this.racket.position.set(0, 0, 5);
-//       this.racket.rotation.x = Math.PI;
-//       this.racket.rotation.y = Math.PI / 4;
-//       this.racket.rotation.z = Math.PI;
-
-//       this.scene.add(this.racket);
-//     });
-//   }
-
-//   animate() {
-//     requestAnimationFrame(this.animate.bind(this));
-//     if (this.racket) {
-//       // this.racket.rotation.y += 0.005;
-//     }
-//     this.renderer.render(this.scene, this.camera);
-//   }
-// }
-
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -112,13 +26,30 @@ export class BackGround {
     const light = new THREE.AmbientLight(0xffffff, 1);
     this.scene.add(light);
 
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    //추가
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5);
+    this.scene.add(directionalLight);
+    this.renderer.outputEncoding = THREE.sRGBEncoding;
+    const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+    pointLight.position.set(10, 10, 10);
+    // this.scene.add(pointLight);
+    // this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    // this.renderer.toneMappingExposure = 1.5; // 노출 증가
+    // const color = new THREE.Color(0x0000ff); // 파란색
+    // color.convertSRGBToLinear(); // sRGB에서 선형 색상 공간으로 변환
+    // this.scene.background = color;
+    // this.renderer.outputEncoding = THREE.sRGBEncoding;
+    // this.renderer.gammaFactor = 2.2;
+    // this.renderer.gammaOutput = true;
+    // this.scene.background = new THREE.Color(0x4040ff);
 
+    //orbitControls
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.loadBackground();
     this.loadModel();
 
     this.animate();
-
     window.addEventListener('resize', this.onWindowResize.bind(this));
   }
 
