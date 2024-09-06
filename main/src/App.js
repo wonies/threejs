@@ -8,6 +8,8 @@ import TourStandByFour from './pages/TourStandByFour.js';
 import TourStandByEight from './pages/TourStandByEight.js';
 import WaitingRoom from './pages/WaitingRoom.js';
 import GamePage from './pages/GamePage.js';
+import Game from './game/Game.js';
+import InGame from './game/InGame.js';
 
 export default class App extends Component {
   setup() {
@@ -22,6 +24,8 @@ export default class App extends Component {
         { path: 'standby-8', component: TourStandByEight },
         { path: 'waiting-room', component: WaitingRoom },
         { path: 'game', component: GamePage },
+        { path: 'game-direct', component: Game },
+        { path: 'ingame', component: InGame },
       ],
     };
     this.route = this.route.bind(this);

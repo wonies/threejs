@@ -8,21 +8,30 @@ export default class GamePage extends Component {
   }
 
   template() {
-    return `<div class="game-content"></div>`;
+    return `
+    <div class="game-wrapper">
+        <canvas class="game-canvas"></canvas>
+        <div class="game-ui">
+          <div class="score-display"></div>
+        </div>
+      </div>
+      `;
   }
 
   mounted() {
-    const $content = this.$target.querySelector('.game-content');
-    if ($content) {
-      this.game = new Game($content);
+    const canvas = this.$target.querySelector('.game-canvas');
+    if (canvas) {
+      this.game = new Game(canvas);
     } else {
-      console.error('Game content container not found');
+      console.error('Game canvas not found');
     }
   }
 
   unmount() {
-    console.log('game_page: unmount called');
-    if (this.game) this.game.cleanup();
+    if (this.game) {
+      this.game.cleanup();
+      this.game = null;
+    }
   }
 
   destroy() {

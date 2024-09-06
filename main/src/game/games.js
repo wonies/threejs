@@ -1,7 +1,9 @@
 import Component from '../core/Component.js';
+
 export default class Game extends Component {
   constructor(props) {
     super(props);
+    console.log('Game constructor called');
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
     this.scene = null;
@@ -24,6 +26,8 @@ export default class Game extends Component {
     this.lastBallPosition = { x: 0, y: 0 };
     this.lastUpdateTime = Date.now();
     this.initialSpeed = this.gameWidth * 0.003;
+
+    // this.setup();
     this.init();
   }
 
@@ -50,6 +54,8 @@ export default class Game extends Component {
   template() {
     const { scoreLeft, scoreRight } = this.$state;
     return `
+    <div class="game-wrapper">
+      <div class="game-canvas"></div>
       <div class="game-ui">
         <div class="score-display">${scoreLeft} : ${scoreRight}</div>
       </div>
@@ -57,6 +63,9 @@ export default class Game extends Component {
   `;
   }
 
+  createScoreDisplay() {
+    this.scoreElement = document.querySelector('.score-point');
+  }
   init() {
     console.log('Initializing game');
     if (this.isInitialized) return;
@@ -91,375 +100,6 @@ export default class Game extends Component {
       this.adjustBackgroundSize();
     });
   }
-
-  // init() {
-  //   const scene = new THREE.Scene();
-  //   scene.background = new THREE.Color(0x4558f0);
-
-  //   const gameWidth = window.innerWidth;
-  //   const gameHeight = window.innerHeight;
-
-  //   // Set up camera to match the game area
-  //   const camera = new THREE.OrthographicCamera(
-  //     -gameWidth / 2,
-  //     gameWidth / 2,
-  //     gameHeight / 2,
-  //     -gameHeight / 2,
-  //     0.1,
-  //     1000
-  //   );
-  //   camera.position.z = 5;
-
-  //   const renderer = new THREE.WebGLRenderer();
-  //   renderer.setSize(gameWidth, gameHeight);
-  //   document.body.appendChild(renderer.domElement);
-
-  //   // Matter.js setup
-  //   const { Engine, Runner, Bodies, World, Body, Constraint, Resolver } =
-  //     Matter;
-
-  //   const engine = Engine.create({
-  //     gravity: { x: 0, y: 0, scale: 0 },
-  //   });
-
-  //   Matter.Resolver._restingThresh = 0.001;
-
-  //   const world = engine.world;
-
-  //   // Create walls (only top and bottom)
-  //   const wallThickness = 10; // Increased thickness for visibility
-
-  //   function createWall(x, y, width, height) {
-  //     return Bodies.rectangle(x, y, width, height, {
-  //       isStatic: true,
-  //       restitution: 1,
-  //       friction: 0,
-  //       density: 1,
-  //       slop: 0,
-  //       render: { visible: false },
-  //     });
-  //   }
-
-  //   const topWall = createWall(0, -gameHeight / 2, gameWidth, wallThickness);
-  //   const bottomWall = createWall(0, gameHeight / 2, gameWidth, wallThickness);
-
-  //   World.add(world, [topWall, bottomWall]);
-
-  //   // Create ball
-  //   const ballRadius = gameWidth * 0.01; // Scale ball size relative to game width
-  //   const ball = Bodies.circle(0, 0, ballRadius, {
-  //     label: 'ball',
-  //     restitution: 1,
-  //     friction: 0,
-  //     frictionAir: 0,
-  //     density: 1,
-  //     slop: 0,
-  //   });
-  //   World.add(world, ball);
-
-  //   // Create Paddles
-  //   const paddleWidth = gameWidth * 0.02;
-  //   const paddleHeight = gameHeight * 0.15;
-  //   const paddleOffsetX = gameWidth * 0.45;
-  //   const paddle_one = Bodies.rectangle(
-  //     -paddleOffsetX,
-  //     0,
-  //     paddleWidth,
-  //     paddleHeight,
-  //     {
-  //       label: 'paddle_one',
-  //       isStatic: true,
-  //       friction: 0,
-  //       frictionAir: 0,
-  //       density: 1,
-  //       slop: 0,
-  //     }
-  //   );
-
-  //   const paddle_two = Bodies.rectangle(
-  //     paddleOffsetX,
-  //     0,
-  //     paddleWidth,
-  //     paddleHeight,
-  //     {
-  //       label: 'paddle_two',
-  //       isStatic: true,
-  //       friction: 0,
-  //       frictionAir: 0,
-  //       density: 1,
-  //       slop: 0,
-  //     }
-  //   );
-
-  //   World.add(world, [paddle_one, paddle_two]);
-
-  //   // Set initial velocity
-  //   const initialSpeed = gameWidth * 0.003;
-  //   const angle = Math.random() * Math.PI * 2;
-
-  //   Body.setVelocity(ball, {
-  //     x: Math.cos(angle) * initialSpeed,
-  //     y: Math.sin(angle) * initialSpeed,
-  //   });
-
-  //   // Create Three.js objects
-  //   const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
-  //   const wallGeometryTop = new THREE.BoxGeometry(gameWidth, wallThickness, 0);
-  //   const wallGeometryBottom = new THREE.BoxGeometry(
-  //     gameWidth,
-  //     wallThickness,
-  //     0
-  //   );
-
-  //   const wallMeshTop = new THREE.Mesh(wallGeometryTop, wallMaterial);
-  //   const wallMeshBottom = new THREE.Mesh(wallGeometryBottom, wallMaterial);
-
-  //   wallMeshTop.position.set(0, -gameHeight / 2, 0);
-  //   wallMeshBottom.position.set(0, gameHeight / 2, 0);
-
-  //   scene.add(wallMeshTop, wallMeshBottom);
-
-  //   const ballGeometry = new THREE.CircleGeometry(ballRadius, 32);
-  //   const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  //   const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
-  //   scene.add(ballMesh);
-
-  //   const paddle_One_Geometry = new THREE.BoxGeometry(
-  //     paddleWidth,
-  //     paddleHeight,
-  //     0.1
-  //   );
-  //   const paddle_One_Material = new THREE.MeshBasicMaterial({
-  //     color: 0xcd4b57,
-  //   });
-  //   const paddle_One_Mesh = new THREE.Mesh(
-  //     paddle_One_Geometry,
-  //     paddle_One_Material
-  //   );
-  //   scene.add(paddle_One_Mesh);
-
-  //   const paddle_Two_Geometry = new THREE.BoxGeometry(
-  //     paddleWidth,
-  //     paddleHeight,
-  //     0.1
-  //   );
-  //   const paddle_Two_Material = new THREE.MeshBasicMaterial({
-  //     color: 0xcd4b57,
-  //   });
-  //   const paddle_Two_Mesh = new THREE.Mesh(
-  //     paddle_Two_Geometry,
-  //     paddle_Two_Material
-  //   );
-  //   scene.add(paddle_Two_Mesh);
-
-  //   // Create score display
-  //   const scoreElement = document.createElement('div');
-  //   scoreElement.style.position = 'absolute';
-  //   scoreElement.style.top = '20px';
-  //   scoreElement.style.left = '50%';
-  //   scoreElement.style.transform = 'translateX(-50%)';
-  //   scoreElement.style.color = 'white';
-  //   scoreElement.style.fontSize = '24px';
-  //   scoreElement.style.fontFamily = 'Arial, sans-serif';
-  //   scoreElement.textContent = '0 - 0';
-  //   document.body.appendChild(scoreElement);
-
-  //   document.addEventListener('keydown', pressdown);
-
-  //   function pressdown(event) {
-  //     const moveSpeed = gameHeight * 0.02;
-  //     const halfPaddleHeight = paddleHeight / 2;
-  //     const maxY = gameHeight / 2 - halfPaddleHeight;
-  //     const minY = -gameHeight / 2 + halfPaddleHeight;
-
-  //     if (event.key == 'w' || event.key == 'W') {
-  //       const newY = Math.min(paddle_one.position.y + moveSpeed, maxY);
-  //       Body.setPosition(paddle_one, { x: paddle_one.position.x, y: newY });
-  //     } else if (event.key == 's' || event.key == 'S') {
-  //       const newY = Math.max(paddle_one.position.y - moveSpeed, minY);
-  //       Body.setPosition(paddle_one, { x: paddle_one.position.x, y: newY });
-  //     } else if (event.key == 'ArrowUp') {
-  //       const newY = Math.min(paddle_two.position.y + moveSpeed, maxY);
-  //       Body.setPosition(paddle_two, { x: paddle_two.position.x, y: newY });
-  //     } else if (event.key == 'ArrowDown') {
-  //       const newY = Math.max(paddle_two.position.y - moveSpeed, minY);
-  //       Body.setPosition(paddle_two, { x: paddle_two.position.x, y: newY });
-  //     }
-  //   }
-
-  //   function resetBall() {
-  //     Body.setPosition(ball, { x: 0, y: 0 });
-  //     const angle = Math.random() * Math.PI * 2;
-  //     Body.setVelocity(ball, {
-  //       x: Math.cos(angle) * initialSpeed,
-  //       y: Math.sin(angle) * initialSpeed,
-  //     });
-  //   }
-
-  //   let playerOnePoint = 0;
-  //   let playerTwoPoint = 0;
-
-  //   function updateScore() {
-  //     if (ball.position.x > gameWidth / 2) {
-  //       playerOnePoint += 1;
-  //       resetBall();
-  //     } else if (ball.position.x < -gameWidth / 2) {
-  //       playerTwoPoint += 1;
-  //       resetBall();
-  //     }
-  //     scoreElement.textContent = `${playerOnePoint} - ${playerTwoPoint}`;
-  //   }
-
-  //   let isGameOver = false;
-
-  //   function endGame() {
-  //     if (isGameOver) return;
-  //     var modal = document.getElementById('myModal');
-  //     var closeModalBtn = document.getElementsByClassName('close')[0];
-  //     var modalText = document.getElementById('modalText');
-
-  //     if (playerOnePoint >= 2) {
-  //       modal.style.display = 'block';
-  //       modalText.textContent = 'Player One Win!';
-  //       isGameOver = true;
-  //     } else if (playerTwoPoint >= 2) {
-  //       modal.style.display = 'block';
-  //       modalText.textContent = 'Player Two Win!';
-  //       isGameOver = true;
-  //     }
-
-  //     closeModalBtn.onclick = function () {
-  //       modal.style.display = 'none';
-  //     };
-
-  //     window.onclick = function (event) {
-  //       if (event.target == modal) {
-  //         modal.style.display = 'none';
-  //       }
-  //     };
-  //   }
-
-  //   let AiOpponent = false;
-  //   let aiTargetY = 0;
-  //   let lastBallPosition = { x: 0, y: 0 };
-  //   let lastUpdateTime = Date.now();
-
-  //   function updateAiTarget() {
-  //     const currentTime = Date.now();
-  //     if (currentTime - lastUpdateTime >= 1000) {
-  //       aiTargetY = lastBallPosition.y;
-  //       lastBallPosition = { x: ball.position.x, y: ball.position.y };
-  //       lastUpdateTime = currentTime;
-  //     }
-  //   }
-
-  //   function moveAiPaddle() {
-  //     if (!AiOpponent) return;
-
-  //     const moveSpeed = gameHeight * 0.002; // Adjust this value to change AI speed
-  //     const paddleY = paddle_two.position.y;
-  //     const direction = aiTargetY > paddleY ? 1 : -1;
-  //     const newY = paddleY + direction * moveSpeed;
-
-  //     // Constrain the paddle within the game bounds
-  //     const halfPaddleHeight = paddleHeight / 2;
-  //     const maxY = gameHeight / 2 - halfPaddleHeight;
-  //     const minY = -gameHeight / 2 + halfPaddleHeight;
-  //     const clampedY = Math.max(minY, Math.min(maxY, newY));
-
-  //     Body.setPosition(paddle_two, { x: paddle_two.position.x, y: clampedY });
-  //   }
-
-  //   function animate() {
-  //     if (isGameOver) {
-  //       return;
-  //     }
-
-  //     Engine.update(engine, 1000 / 60);
-
-  //     ballMesh.position.set(ball.position.x, ball.position.y, 0);
-  //     paddle_One_Mesh.position.set(
-  //       paddle_one.position.x,
-  //       paddle_one.position.y,
-  //       0
-  //     );
-  //     paddle_Two_Mesh.position.set(
-  //       paddle_two.position.x,
-  //       paddle_two.position.y,
-  //       0
-  //     );
-
-  //     // Update AI target and move AI paddle
-  //     updateAiTarget();
-  //     moveAiPaddle();
-
-  //     const velocity = ball.velocity;
-  //     const currentSpeed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2);
-  //     if (Math.abs(currentSpeed - initialSpeed) > 0.0001) {
-  //       Body.setVelocity(ball, {
-  //         x: (velocity.x / currentSpeed) * initialSpeed,
-  //         y: (velocity.y / currentSpeed) * initialSpeed,
-  //       });
-  //     }
-
-  //     updateScore();
-  //     endGame();
-  //     renderer.render(scene, camera);
-  //     requestAnimationFrame(animate);
-  //   }
-  //   animate();
-  //   // Handle window resizing
-  //   window.addEventListener('resize', function () {
-  //     const newWidth = window.innerWidth;
-  //     const newHeight = window.innerHeight;
-
-  //     camera.left = -newWidth / 2;
-  //     camera.right = newWidth / 2;
-  //     camera.top = newHeight / 2;
-  //     camera.bottom = -newHeight / 2;
-  //     camera.updateProjectionMatrix();
-
-  //     renderer.setSize(newWidth, newHeight);
-
-  //     // Update wall positions
-  //     Body.setPosition(topWall, { x: 0, y: -newHeight / 2 });
-  //     Body.setPosition(bottomWall, { x: 0, y: newHeight / 2 });
-  //     wallMeshTop.position.set(0, -newHeight / 2, 0);
-  //     wallMeshBottom.position.set(0, newHeight / 2, 0);
-
-  //     // Update paddle positions
-  //     const newPaddleOffsetX = newWidth * 0.4;
-  //     Body.setPosition(paddle_one, {
-  //       x: -newPaddleOffsetX,
-  //       y: paddle_one.position.y,
-  //     });
-  //     Body.setPosition(paddle_two, {
-  //       x: newPaddleOffsetX,
-  //       y: paddle_two.position.y,
-  //     });
-  //   });
-  // }
-
-  cleanup() {
-    // 게임 정리 로직
-    cancelAnimationFrame(this.animationId);
-    this.renderer.dispose();
-    // 이벤트 리스너 제거
-    document.removeEventListener('keydown', this.pressdown);
-    window.removeEventListener('resize', this.handleResize);
-    // Matter.js 엔진 정리
-    Matter.World.clear(this.world);
-    Matter.Engine.clear(this.engine);
-  }
-  // mounted() {
-  //   const canvas = this.$target.querySelector('.game-canvas');
-  //   if (canvas) {
-  //     this.game = new Game(canvas);
-  //   } else {
-  //     console.error('Game canvas not found');
-  //   }
-  // }
 
   setupScene() {
     this.scene = new THREE.Scene();
@@ -525,6 +165,7 @@ export default class Game extends Component {
 
     World.add(this.world, [topWall, bottomWall]);
   }
+
   createBall() {
     const { Bodies, World, Body } = Matter;
     const ballRadius = this.gameWidth * 0.01;
@@ -544,6 +185,7 @@ export default class Game extends Component {
       y: Math.sin(angle) * this.initialSpeed,
     });
   }
+
   createPaddles() {
     const { Bodies, World } = Matter;
     const paddleWidth = this.gameWidth * 0.02;
@@ -622,7 +264,7 @@ export default class Game extends Component {
     this.scoreElement.style.fontSize = '24px';
     this.scoreElement.style.fontFamily = 'Arial, sans-serif';
     this.scoreElement.textContent = '0 - 0';
-    // document.body.appendChild(this.scoreElement);
+    document.body.appendChild(this.scoreElement);
   }
 
   setupEventListeners() {
@@ -715,10 +357,10 @@ export default class Game extends Component {
   updateScore() {
     if (this.ball.position.x > this.gameWidth / 2) {
       this.setState({ scoreLeft: this.$state.scoreLeft + 1 });
-      // this.resetBall();
+      this.resetBall();
     } else if (this.ball.position.x < -this.gameWidth / 2) {
       this.setState({ scoreRight: this.$state.scoreRight + 1 });
-      // this.resetBall();
+      this.resetBall();
     }
     this.updateScoreDisplay();
   }
@@ -844,5 +486,53 @@ export default class Game extends Component {
     if (scoreDisplay) {
       scoreDisplay.textContent = `${this.$state.scoreLeft} : ${this.$state.scoreRight}`;
     }
+  }
+
+  initializeGame() {
+    console.log('Initializing game');
+    if (this.isInitialized) return;
+
+    if (typeof THREE === 'undefined') {
+      console.error('THREE is not defined. Make sure THREE.js is loaded.');
+      return;
+    }
+    if (typeof Matter === 'undefined') {
+      console.error('Matter is not defined. Make sure Matter.js is loaded.');
+      return;
+    }
+
+    this.setupScene();
+    this.setupPhysics();
+    this.createWalls();
+    this.createBall();
+    this.createPaddles();
+    this.createThreeJsObjects();
+    this.setupEventListeners();
+    this.loadBackground();
+
+    this.isInitialized = true;
+  }
+
+  mounted() {
+    console.log('Game mounted called');
+    const canvasContainer = this.$target.querySelector('.game-canvas');
+    if (!canvasContainer) {
+      console.error('Canvas container not found');
+      return;
+    }
+
+    this.initializeGame();
+
+    if (this.renderer) {
+      console.log('Appending renderer to canvas container');
+      canvasContainer.appendChild(this.renderer.domElement);
+      this.animate();
+    } else {
+      console.error('Renderer not initialized');
+    }
+  }
+
+  unmount() {
+    this.cleanup();
   }
 }

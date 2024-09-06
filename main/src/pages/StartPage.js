@@ -20,18 +20,18 @@ export default class StartPage extends Component {
   removeEvent() {
     if (this.$target && this.clickHandler) {
       this.$target.removeEventListener('click', this.clickHandler);
-      this.clickHandler = null; // 핸들러 참조 제거
+      this.clickHandler = null;
     }
   }
 
   setEvent() {
-    this.removeEvent(); // 기존 이벤트 리스너 제거
+    this.removeEvent();
 
     this.clickHandler = function ({ target }) {
       if (target.classList.contains('btn')) {
         console.log('Game started!');
         this.routeToGame();
-        this.removeEvent(); // 게임 시작 후에도 버튼이 유효해야 한다면 이 줄은 제거
+        this.removeEvent();
       }
     }.bind(this);
 
