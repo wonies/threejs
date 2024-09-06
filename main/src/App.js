@@ -10,7 +10,9 @@ import WaitingRoom from './pages/WaitingRoom.js';
 import GamePage from './pages/GamePage.js';
 import Game from './game/Game.js';
 import InGame from './game/InGame.js';
-
+import AiGame from './game/AiGame.js';
+import AiPage from './game/AiPage.js';
+import PlayerGame from './game/PlayerGame.js';
 export default class App extends Component {
   setup() {
     this.$state = {
@@ -26,8 +28,11 @@ export default class App extends Component {
         { path: 'game', component: GamePage },
         { path: 'game-direct', component: Game },
         { path: 'ingame', component: InGame },
+        { path: 'ai-game', component: AiPage },
+        { path: 'tour-game', component: PlayerGame },
       ],
     };
+    this.currentComponent = null;
     this.route = this.route.bind(this);
   }
 
@@ -46,15 +51,82 @@ export default class App extends Component {
     this.route();
   }
 
-  route() {
+  handleHashChange() {
     const hash = window.location.hash.replace('#', '') || '';
+    console.log('Hash changed to:', hash);
+    this.route(hash);
+  }
+
+  updateHash(hash) {
+    if (window.location.hash !== `#${hash}`) {
+      history.pushState(null, '', `#${hash}`);
+    }
+  }
+  route(hash) {
     const routeInfo =
       this.$state.routes.find((route) => route.path === hash) ||
       this.$state.routes[0];
-
     const $main = this.$target.querySelector('main');
-    new routeInfo.component($main);
-    console.log('hash------', hash);
-    console.log('route info: ', routeInfo);
+
+    if (
+      this.currentComponent &&
+      typeof this.currentComponent.unmount === 'function'
+    ) {
+      console.log('Unmounting previous component');
+      this.currentComponent.unmount();
+    }
+
+    console.log('Mounting new component:', routeInfo.component.name);
+    this.currentComponent = new routeInfo.component($main);
+
+    this.updateHash(routeInfo.path);
+
+    console.log('Route info:', routeInfo);
+  }
+
+  setEvent() {
+    window.addEventListener('hashchange', this.handleHashChange.bind(this));
+  }
+
+  cleanup() {
+    window.removeEventListener('hashchange', this.handleHashChange.bind(this));
+    if (
+      this.currentComponent &&
+      typeof this.currentComponent.unmount === 'function'
+    ) {
+      this.currentComponent.unmount();
+    }
+  }
+
+  //----route Page
+  // route() {
+  //   const hash = window.location.hash.replace('#', '') || '';
+  //   const routeInfo =
+  //     this.$state.routes.find((route) => route.path === hash) ||
+  //     this.$state.routes[0];
+
+  //   const $main = this.$target.querySelector('main');
+  //   if (
+  //     this.currentComponent &&
+  //     typeof this.currentComponent.cleanup === 'function'
+  //   ) {
+  //     this.currentComponent.cleanup();
+  //   }
+  //   this.currentComponent = new routeInfo.component($main);
+
+  //   // new routeInfo.component($main);
+  //   console.log('hash------', hash);
+  //   console.log('route info: ', routeInfo);
+  // }
+
+  cleanup() {
+    console.log('clean up hash : ', hash);
+    window.removeEventListener('hashchange', this.route);
+    if (
+      this.currentComponent &&
+      typeof this.currentComponent.cleanup === 'function'
+    ) {
+      this.currentComponent.cleanup();
+    }
   }
 }

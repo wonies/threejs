@@ -107,6 +107,6 @@ export default class AiBattlePage extends InGamePage {
 
   routeToGame() {
     console.log('Routing to game page');
-    window.location.hash = '#game';
+    window.location.hash = '#ai-game';
   }
 }

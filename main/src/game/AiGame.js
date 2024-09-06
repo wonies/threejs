@@ -1,6 +1,6 @@
 import Component from '../core/Component.js';
 
-export default class InGame extends Component {
+export default class AiGame extends Component {
   constructor(props) {
     super(props);
     this.gameWidth = window.innerWidth;
@@ -20,12 +20,14 @@ export default class InGame extends Component {
     this.playerOnePoint = 0;
     this.playerTwoPoint = 0;
     this.isGameOver = false;
-    this.AiOpponent = false;
+    this.AiOpponent = true;
     this.aiTargetY = 0;
     this.lastBallPosition = { x: 0, y: 0 };
     this.lastUpdateTime = Date.now();
     this.initialSpeed = this.gameWidth * 0.003;
     this.init();
+    console.log('-----------constructor-----------');
+    this.setup();
   }
 
   setup() {
@@ -33,8 +35,8 @@ export default class InGame extends Component {
       image: '../../main/public/pongmatch.png',
       scoreLeft: 0,
       scoreRight: 0,
-      playerLeft: '',
-      playerRight: '',
+      playerLeft: 'Human',
+      playerRight: 'Ai',
     });
   }
 
@@ -58,12 +60,23 @@ export default class InGame extends Component {
     <div class="game-canvas">
       <div class="game-ui">
         <div class="score-display">${scoreLeft} : ${scoreRight}</div>
-        <div class="player-display">${playerLeft} vs ${playerRight}</div>
-      </div>
-    </div>
-    </div>
-  `;
+        <div class="playerLeft-display">${playerLeft}</div>
+        <div class="playerRight-display">${playerRight}</div>
+        </div>
+        </div>
+         <div id="myModal" class="modal">
+          <div class="modal-content">
+            <h2 id="modalText"></h2>
+            <div class="modal-buttons">
+              <button id="restartButton">다시하기</button>
+              <button id="homeButton">홈으로 가기</button>
+            </div>
+          </div>
+        </div>
+        </div>
+        `;
   }
+  // <div class="player-display">${playerLeft} vs ${playerRight}</div>
 
   loadBackground() {
     const loader = new THREE.TextureLoader();
@@ -71,7 +84,6 @@ export default class InGame extends Component {
       this.backgroundTexture = texture;
       this.backgroundTexture.encoding = THREE.sRGBEncoding;
       this.scene.background = this.backgroundTexture;
-      this.adjustBackgroundSize();
     });
   }
 
@@ -346,13 +358,13 @@ export default class InGame extends Component {
     var closeModalBtn = document.getElementsByClassName('close')[0];
     var modalText = document.getElementById('modalText');
 
-    if (this.playerOnePoint >= 2) {
+    if (this.$state.scoreLeft >= 1) {
       modal.style.display = 'block';
-      modalText.textContent = 'Player One Win!';
+      modalText.textContent = 'Human WIN!';
       this.isGameOver = true;
-    } else if (this.playerTwoPoint >= 2) {
+    } else if (this.$state.scoreRight >= 1) {
       modal.style.display = 'block';
-      modalText.textContent = 'Player Two Win!';
+      modalText.textContent = 'Ai Win!';
       this.isGameOver = true;
     }
 
@@ -365,8 +377,48 @@ export default class InGame extends Component {
         modal.style.display = 'none';
       }
     };
+    restartButton.onclick = () => {
+      modal.style.display = 'none';
+      this.navigateToNewGame();
+    };
+    homeButton.onclick = () => {
+      modal.style.display = 'none';
+      this.navigateToHome();
+    };
+    // if (this.isGameOver) {
+    //   this.cleanup();
+    // }
   }
 
+  resetGame() {
+    this.setState({
+      scoreLeft: 0,
+      scoreRight: 0,
+      playerLeft: 'Human',
+      playerRight: 'Ai',
+    });
+    this.isGameOver = false;
+    // 다른 필요한 상태 초기화
+  }
+  navigateToNewGame() {
+    console.log('Navigating to new game');
+    this.cleanup();
+    this.resetGame(); // 게임 상태 초기화
+    this.init(); // 게임 재초기화
+
+    // 모달 닫기
+    const modal = document.getElementById('myModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+    // window.location.hash = '#ai-game';
+  }
+
+  navigateToHome() {
+    console.log('Navigating to home');
+    this.cleanup();
+    window.location.hash = '#ingame-1';
+  }
   updateAiTarget() {
     const currentTime = Date.now();
     if (currentTime - this.lastUpdateTime >= 1000) {
@@ -399,44 +451,6 @@ export default class InGame extends Component {
     });
   }
 
-  //   animate() {
-  //     if (this.isGameOver) {
-  //       return;
-  //     }
-
-  //     const { Engine, Body } = Matter;
-  //     Engine.update(this.engine, 1000 / 60);
-
-  //     this.ballMesh.position.set(this.ball.position.x, this.ball.position.y, 0);
-  //     this.paddle_One_Mesh.position.set(
-  //       this.paddle_one.position.x,
-  //       this.paddle_one.position.y,
-  //       0
-  //     );
-  //     this.paddle_Two_Mesh.position.set(
-  //       this.paddle_two.position.x,
-  //       this.paddle_two.position.y,
-  //       0
-  //     );
-
-  //     this.updateAiTarget();
-  //     this.moveAiPaddle();
-
-  //     const velocity = this.ball.velocity;
-  //     const currentSpeed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2);
-  //     if (Math.abs(currentSpeed - this.initialSpeed) > 0.0001) {
-  //       Body.setVelocity(this.ball, {
-  //         x: (velocity.x / currentSpeed) * this.initialSpeed,
-  //         y: (velocity.y / currentSpeed) * this.initialSpeed,
-  //       });
-  //     }
-
-  //     this.updateScore();
-  //     this.endGame();
-  //     this.renderer.render(this.scene, this.camera);
-  //     requestAnimationFrame(this.animate.bind(this));
-  //   }
-
   //add
   setEvent() {
     this.addEventListeners();
@@ -449,18 +463,18 @@ export default class InGame extends Component {
 
   mounted() {
     const canvasContainer = this.$target.querySelector('#game-canvas');
-    if (canvasContainer) {
-      this.setupScene(canvasContainer);
-      this.setupPhysics();
-      this.createWalls();
-      this.createBall();
-      this.createPaddles();
-      this.createThreeJsObjects();
-      this.loadBackground();
-      this.animate();
-    } else {
-      console.error('Canvas container not found');
-    }
+    // if (canvasContainer) {
+    //   this.setupScene(canvasContainer);
+    //   this.setupPhysics();
+    //   this.createWalls();
+    //   this.createBall();
+    //   this.createPaddles();
+    //   this.createThreeJsObjects();
+    //   this.loadBackground();
+    //   this.animate();
+    // } else {
+    //   console.error('Canvas container not found');
+    // }
   }
   animate() {
     if (this.isGameOver) {
@@ -499,16 +513,81 @@ export default class InGame extends Component {
     requestAnimationFrame(this.animate.bind(this));
   }
 
-  cleanup() {
-    cancelAnimationFrame(this.animationId);
-    this.renderer.dispose();
-    document.removeEventListener('keydown', this.handleKeyPress);
-    window.removeEventListener('resize', this.handleResize);
-    Matter.World.clear(this.world);
-    Matter.Engine.clear(this.engine);
+  disposeSceneObjects(scene) {
+    scene.traverse((object) => {
+      if (object.geometry) {
+        object.geometry.dispose();
+      }
+      if (object.material) {
+        if (Array.isArray(object.material)) {
+          object.material.forEach((material) => material.dispose());
+        } else {
+          object.material.dispose();
+        }
+      }
+    });
   }
 
+  cleanup() {
+    console.log('-----------cleanup-----------');
+
+    // Cancel animation frame
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+
+    // Dispose Three.js objects
+    if (this.renderer) {
+      this.renderer.dispose();
+      this.renderer.forceContextLoss();
+      this.renderer.domElement.remove();
+      this.renderer = null;
+    }
+
+    if (this.scene) {
+      this.disposeSceneObjects(this.scene);
+      this.scene = null;
+    }
+
+    // Clear Matter.js world and engine
+    if (this.world) {
+      Matter.World.clear(this.world);
+      this.world = null;
+    }
+
+    if (this.engine) {
+      Matter.Engine.clear(this.engine);
+      this.engine = null;
+    }
+
+    // Remove event listeners
+    // document.removeEventListener('keydown', this.handleKeyPress);
+    // window.removeEventListener('resize', this.handleResize);
+
+    // Clear DOM elements
+    if (this.$target) {
+      this.$target.innerHTML = '';
+    }
+
+    if (this.scoreElement && this.scoreElement.parentNode) {
+      this.scoreElement.parentNode.removeChild(this.scoreElement);
+    }
+
+    // Reset game state
+    this.isGameOver = true;
+    this.ball = null;
+    this.paddle_one = null;
+    this.paddle_two = null;
+    this.ballMesh = null;
+    this.paddle_One_Mesh = null;
+    this.paddle_Two_Mesh = null;
+
+    super.cleanup();
+  }
   unmounted() {
+    console.log('-----------unmount-----------');
     this.cleanup();
+    super.unmounted();
   }
 }
