@@ -5,12 +5,9 @@ export default class Component {
 
   constructor($target, $props) {
     console.log('Constructor');
-
     this.$target = $target;
-    // console.log('target : ', $target);
     this.$props = $props;
 
-    // console.log('props : ', $props);
     this.setup();
     this.render();
     this.setEvent();

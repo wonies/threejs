@@ -19,10 +19,12 @@ export default class HomePage extends Component {
       '[data-component="start-page-container"]'
     );
 
-    // Initialize BackGround
     new BackGround($back);
-
-    // Initialize StartPage
     new StartPage($start);
+  }
+
+  destroy() {
+    this.removeEvent();
+    super.destroy();
   }
 }

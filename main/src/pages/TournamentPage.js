@@ -20,13 +20,13 @@ export default class TournamentPage extends InGamePage {
                 <img src="${image}" alt="tournament">
             </div>
             <div class="pick-option">
-                <div class="option" data-option="opt1">
+                <div class="option" data-option="select1">
                     <span>${opt}</span>
                 </div>
-                <div class="option" data-option="opt2">
+                <div class="option" data-option="select2">
                     <span>${opt2}</span>
                 </div>
-                <div class="option" data-option="opt3">
+                <div class="option" data-option="select3">
                     <span>${opt3}</span>
                 </div>
             </div>
@@ -34,27 +34,39 @@ export default class TournamentPage extends InGamePage {
         `;
   }
 
+  removeEvent() {
+    if (this.$target && this.clickHandler) {
+      this.$target.removeEventListener('click', this.clickHandler);
+      this.clickHandler = null;
+    }
+  }
+
   setEvent() {
-    const { $target } = this;
-    $target.addEventListener('click', ({ target }) => {
+    this.removeEvent();
+
+    this.clickHandler = function ({ target }) {
       const option = target.closest('.option');
       if (target.closest('.account-image img')) {
         this.goToHome();
       }
       if (option) {
         const optType = option.dataset.option;
-        if (optType === 'opt1') {
+        if (optType === 'select1') {
           console.log(`selected option: ${this.$state.opt}`);
           this.handleTwoBattle();
-        } else if (optType === 'opt2') {
+        } else if (optType === 'select2') {
           console.log(`selected option: ${this.$state.opt2}`);
           this.handleFourBattle();
-        } else if (optType === 'opt3') {
+        } else if (optType === 'select3') {
           console.log(`selected option: ${this.$state.opt3}`);
           this.handleEightBattle();
         }
       }
-    });
+    }.bind(this);
+
+    if (this.$target) {
+      this.$target.addEventListener('click', this.clickHandler);
+    }
   }
 
   goToHome() {
@@ -71,5 +83,10 @@ export default class TournamentPage extends InGamePage {
 
   handleEightBattle() {
     window.location.hash = '#standby-8';
+  }
+
+  destroy() {
+    this.removeEvent();
+    super.destroy();
   }
 }

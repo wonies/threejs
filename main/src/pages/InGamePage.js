@@ -36,27 +36,39 @@ export default class InGame extends Component {
       `;
   }
 
+  removeEvent() {
+    if (this.$target && this.clickHandler) {
+      this.$target.removeEventListener('click', this.clickHandler);
+      this.clickHandler = null;
+    }
+  }
+
   setEvent() {
+    this.removeEvent();
     const { $target } = this;
-    $target.addEventListener('click', ({ target }) => {
+
+    this.clickHandler = ({ target }) => {
       const option = target.closest('.option');
       if (target.closest('.account-image img')) {
         this.goToHome();
+        this.removeEvent();
       }
       if (option) {
         const optType = option.dataset.option;
         if (optType === 'opt1') {
           this.handleTournament();
+          this.removeEvent();
         } else if (optType === 'opt2') {
           this.handleAi();
+          this.removeEvent();
         }
       }
-    });
+    };
+    $target.addEventListener('click', this.clickHandler);
   }
 
   handleTournament() {
     console.log('Tour!');
-    // this.routeToTour();
     window.location.hash = '#tournament';
   }
 
@@ -68,7 +80,9 @@ export default class InGame extends Component {
   goToHome() {
     window.location.hash = '';
   }
-  mounted() {
-    // this.setEvent();
+
+  destroy() {
+    this.removeEvent();
+    super.destroy();
   }
 }

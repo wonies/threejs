@@ -1,6 +1,5 @@
 import Component from '../core/Component.js';
-import { Game } from '../game/Game.js';
-
+import Game from '../game/Game.js';
 export default class GamePage extends Component {
   constructor(props) {
     super(props);
@@ -16,10 +15,6 @@ export default class GamePage extends Component {
     const $content = this.$target.querySelector('.game-content');
     if ($content) {
       this.game = new Game($content);
-      // while (!this.game.isGmaeOver) {
-      //   console.log('game_page: game is running');
-      // }
-      // window.location.hash = 'ingame-1';
     } else {
       console.error('Game content container not found');
     }

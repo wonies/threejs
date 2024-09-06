@@ -33,16 +33,6 @@ export class BackGround {
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     const pointLight = new THREE.PointLight(0xffffff, 1, 100);
     pointLight.position.set(10, 10, 10);
-    // this.scene.add(pointLight);
-    // this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    // this.renderer.toneMappingExposure = 1.5; // 노출 증가
-    // const color = new THREE.Color(0x0000ff); // 파란색
-    // color.convertSRGBToLinear(); // sRGB에서 선형 색상 공간으로 변환
-    // this.scene.background = color;
-    // this.renderer.outputEncoding = THREE.sRGBEncoding;
-    // this.renderer.gammaFactor = 2.2;
-    // this.renderer.gammaOutput = true;
-    // this.scene.background = new THREE.Color(0x4040ff);
 
     //orbitControls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -111,8 +101,6 @@ export class BackGround {
       this.racket.rotation.z = Math.PI;
 
       this.scene.add(this.racket);
-
-      // 초기 크기 설정
       this.onWindowResize();
     });
   }

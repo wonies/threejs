@@ -29,7 +29,7 @@ export default class AiBattlePage extends InGamePage {
             <img src="${image}" alt="pong">
         </div>
         <div class="pick-option">
-            <div class="option" data-option="opt1">
+            <div class="option" data-option="hon">
             <span id="typing-text"></span>
              <button id="hon" class="hon" style="display: none;">혼내주러가기</button>
             </div>
@@ -69,16 +69,19 @@ export default class AiBattlePage extends InGamePage {
   removeEvent() {
     if (this.$target && this.clickHandler) {
       this.$target.removeEventListener('click', this.clickHandler);
-      this.clickHandler = null; // 핸들러 참조 제거
+      this.clickHandler = null;
     }
   }
 
   setEvent() {
-    this.removeEvent(); // 기존 이벤트 리스너 제거
+    this.removeEvent();
 
     this.clickHandler = function ({ target }) {
       if (target.classList.contains('hon')) {
         this.routeToGame();
+        this.removeEvent();
+      } else if (target.closest('.account-image img')) {
+        this.goToHome();
         this.removeEvent();
       }
     }.bind(this);
