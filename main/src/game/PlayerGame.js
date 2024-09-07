@@ -44,7 +44,6 @@ export default class PlayerGame extends Component {
     this.setup();
     this.loadPlayersFromSessionStorage();
     this.language = sessionStorage.getItem('language');
-    this.handleKeyPress = this.handleKeyPress.bind(this);
     this.handleResize = this.handleResize.bind(this);
   }
 
@@ -171,6 +170,7 @@ export default class PlayerGame extends Component {
     this.setupEventListeners();
     this.animate();
     this.loadBackground();
+    this.handleResize = this.handleResize.bind(this);
   }
 
   template() {
@@ -203,16 +203,6 @@ export default class PlayerGame extends Component {
       this.backgroundTexture.encoding = THREE.sRGBEncoding;
       this.scene.background = this.backgroundTexture;
     });
-  }
-
-  setupEventListeners() {
-    document.addEventListener('keydown', this.handleKeyPress);
-    window.addEventListener('resize', this.handleResize);
-  }
-
-  removeEventListeners() {
-    document.removeEventListener('keydown', this.handleKeyPress);
-    window.removeEventListener('resize', this.handleResize);
   }
 
   setupTournament() {
@@ -251,7 +241,6 @@ export default class PlayerGame extends Component {
 
     const currentRoundPlayers = this.tournamentRounds[this.currentRound];
     if (!currentRoundPlayers) {
-      console.error('No players found for current round:', this.currentRound);
       return;
     }
 
@@ -546,6 +535,7 @@ export default class PlayerGame extends Component {
   }
 
   handleResize() {
+    if (!this.renderer) return; // 이 줄을 추가
     const { Body } = Matter;
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
@@ -902,7 +892,7 @@ export default class PlayerGame extends Component {
       this.modal.remove();
       this.modal = null;
     }
-
+    window.removeEventListener('resize', this.handleResize);
     super.cleanup();
   }
 

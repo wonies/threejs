@@ -1,5 +1,4 @@
 import InGamePage from './InGamePage.js';
-import GamePage from './GamePage.js';
 
 export default class AiBattlePage extends InGamePage {
   constructor(props) {

@@ -13,8 +13,8 @@ export default class WaitingRoom extends InGamePage {
 
     this.$state = {
       ...this.$state,
-      image: '../../main/public/aiphoto.png',
-      playerNames,
+      image: '../../main/public/winner.png',
+      playerNames: playerNames || [],
     };
   }
 

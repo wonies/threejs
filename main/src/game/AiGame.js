@@ -125,7 +125,7 @@ export default class AiGame extends Component {
 
   loadBackground() {
     const loader = new THREE.TextureLoader();
-    loader.load('public/table2.png', (texture) => {
+    loader.load('public/tables.png', (texture) => {
       this.backgroundTexture = texture;
       this.backgroundTexture.encoding = THREE.sRGBEncoding;
       this.scene.background = this.backgroundTexture;
@@ -305,25 +305,41 @@ export default class AiGame extends Component {
     const maxY = this.gameHeight / 2 - halfPaddleHeight;
     const minY = -this.gameHeight / 2 + halfPaddleHeight;
 
-    if (event.key == 'w' || event.key == 'W') {
+    if (
+      (event.key == 'w' || event.key == 'W') &&
+      this.paddle_one &&
+      this.paddle_one.position
+    ) {
       const newY = Math.min(this.paddle_one.position.y + moveSpeed, maxY);
       Body.setPosition(this.paddle_one, {
         x: this.paddle_one.position.x,
         y: newY,
       });
-    } else if (event.key == 's' || event.key == 'S') {
+    } else if (
+      (event.key == 's' || event.key == 'S') &&
+      this.paddle_one &&
+      this.paddle_one.position
+    ) {
       const newY = Math.max(this.paddle_one.position.y - moveSpeed, minY);
       Body.setPosition(this.paddle_one, {
         x: this.paddle_one.position.x,
         y: newY,
       });
-    } else if (event.key == 'ArrowUp') {
+    } else if (
+      event.key == 'ArrowUp' &&
+      this.paddle_two &&
+      this.paddle_two.position
+    ) {
       const newY = Math.min(this.paddle_two.position.y + moveSpeed, maxY);
       Body.setPosition(this.paddle_two, {
         x: this.paddle_two.position.x,
         y: newY,
       });
-    } else if (event.key == 'ArrowDown') {
+    } else if (
+      event.key == 'ArrowDown' &&
+      this.paddle_two &&
+      this.paddle_two.position
+    ) {
       const newY = Math.max(this.paddle_two.position.y - moveSpeed, minY);
       Body.setPosition(this.paddle_two, {
         x: this.paddle_two.position.x,
@@ -469,6 +485,7 @@ export default class AiGame extends Component {
       console.warn('Home button not found');
     }
   }
+
   resetGame() {
     this.setState({
       scoreLeft: 0,

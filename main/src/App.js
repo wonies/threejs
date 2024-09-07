@@ -7,8 +7,6 @@ import TourStandBy from './pages/TourStandBy.js';
 import TourStandByFour from './pages/TourStandByFour.js';
 import TourStandByEight from './pages/TourStandByEight.js';
 import WaitingRoom from './pages/WaitingRoom.js';
-import GamePage from './pages/GamePage.js';
-import Game from './game/Game.js';
 import AiGame from './game/AiGame.js';
 import AiPage from './game/AiPage.js';
 import PlayerGame from './game/PlayerGame.js';
@@ -24,7 +22,6 @@ export default class App extends Component {
         { path: 'standby-4', component: TourStandByFour },
         { path: 'standby-8', component: TourStandByEight },
         { path: 'waiting-room', component: WaitingRoom },
-        { path: 'game', component: GamePage },
         { path: 'ai-game', component: AiGame },
         { path: 'tour-game', component: PlayerGame },
       ],
