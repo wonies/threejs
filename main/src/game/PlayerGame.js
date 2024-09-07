@@ -86,8 +86,6 @@ export default class PlayerGame extends Component {
 
     if (this.players.length === 0) {
       console.error('Unable to start game: No players available');
-      // Here you might want to handle this error condition,
-      // perhaps by redirecting to a player selection screen or showing an error message
     }
 
     this.setState({ players: this.players });
@@ -106,20 +104,6 @@ export default class PlayerGame extends Component {
     this.loadBackground();
   }
 
-  // template() {
-  //   const { scoreLeft, scoreRight, playerLeft, playerRight, players } =
-  //     this.$state;
-  //   return `
-  //   <div class="game-canvas">
-  //     <div class="game-ui">
-  //       <div class="score-display">${scoreLeft} : ${scoreRight}</div>
-  //       <div class="player-display">${playerLeft} vs ${playerRight}</div>
-  //     </div>
-  //     <div id="tournament-dashboard"></div>
-  //   </div>
-  // `;
-  // }
-
   template() {
     const { scoreLeft, scoreRight, image, playerLeft, playerRight } =
       this.$state;
@@ -135,7 +119,6 @@ export default class PlayerGame extends Component {
           <div class="modal-content">
             <h2 id="modalText"></h2>
             <div class="modal-buttons">
-              <button id="restartButton">다시하기</button>
               <button id="homeButton">홈으로 가기</button>
             </div>
           </div>
@@ -143,7 +126,6 @@ export default class PlayerGame extends Component {
         </div>
         `;
   }
-  // <div class="player-display">${playerLeft} vs ${playerRight}</div>
 
   loadBackground() {
     const loader = new THREE.TextureLoader();
@@ -157,7 +139,6 @@ export default class PlayerGame extends Component {
   setupTournament() {
     if (this.players.length === 0) {
       console.error('Cannot start tournament: No players available');
-      // Handle this error condition (e.g., show error message, redirect)
       return;
     }
 
@@ -213,7 +194,6 @@ export default class PlayerGame extends Component {
     const player1 = currentRoundPlayers[nextMatchIndex];
     const player2 = currentRoundPlayers[nextMatchIndex + 1];
 
-    // Check if player objects exist and have name property
     const player1Name =
       player1 && player1.name ? player1.name : `Player ${nextMatchIndex + 1}`;
     const player2Name =
@@ -227,19 +207,16 @@ export default class PlayerGame extends Component {
 
     console.log('Starting match:', this.currentMatch);
 
-    this.resetGame();
-    this.resetBall();
-    this.createPaddles();
+    this.cleanupGameElements();
+
+    this.createGameElements();
     this.setState({
       playerLeft: player1Name,
       playerRight: player2Name,
       scoreLeft: 0,
       scoreRight: 0,
     });
-    // this.paddle_one = null;
-    // this.paddle_two = null;
-    // World.remove(world, pair.bodyA);
-    // World.delete(this.world, [this.paddle_one, this.paddle_two]);
+
     this.isGameOver = false;
     if (!this.animationId) {
       this.animate();
@@ -248,59 +225,44 @@ export default class PlayerGame extends Component {
     console.log(`Match started: ${player1Name} vs ${player2Name}`);
   }
 
-  // startNextMatch() {
-  //   console.log('Starting next match, current round:', this.currentRound);
-  //   if (this.currentRound >= this.tournamentRounds.length) {
-  //     console.log('Tournament ended');
-  //     this.endTournament();
-  //     return;
-  //   }
+  cleanupGameElements() {
+    // Remove existing paddles and ball from the physics world
+    if (this.paddle_one) Matter.World.remove(this.world, this.paddle_one);
+    if (this.paddle_two) Matter.World.remove(this.world, this.paddle_two);
+    if (this.ball) Matter.World.remove(this.world, this.ball);
 
-  //   const currentRoundPlayers = this.tournamentRounds[this.currentRound];
-  //   if (!currentRoundPlayers) {
-  //     console.error('No players found for current round:', this.currentRound);
-  //     return;
-  //   }
+    // Remove existing meshes from the scene
+    if (this.paddle_One_Mesh) this.scene.remove(this.paddle_One_Mesh);
+    if (this.paddle_Two_Mesh) this.scene.remove(this.paddle_Two_Mesh);
+    if (this.ballMesh) this.scene.remove(this.ballMesh);
 
-  //   let nextMatchIndex = currentRoundPlayers.findIndex(
-  //     (player) => player !== null
-  //   );
-  //   console.log('Next match index:', nextMatchIndex);
+    // Dispose of geometries and materials
+    if (this.paddle_One_Mesh) {
+      this.paddle_One_Mesh.geometry.dispose();
+      this.paddle_One_Mesh.material.dispose();
+    }
+    if (this.paddle_Two_Mesh) {
+      this.paddle_Two_Mesh.geometry.dispose();
+      this.paddle_Two_Mesh.material.dispose();
+    }
+    if (this.ballMesh) {
+      this.ballMesh.geometry.dispose();
+      this.ballMesh.material.dispose();
+    }
 
-  //   if (
-  //     nextMatchIndex === -1 ||
-  //     nextMatchIndex + 1 >= currentRoundPlayers.length
-  //   ) {
-  //     console.log('No more matches in current round, moving to next round');
-  //     this.currentRound++;
-  //     this.startNextMatch();
-  //     return;
-  //   }
+    // Reset references
+    this.paddle_one = null;
+    this.paddle_two = null;
+    this.ball = null;
+    this.paddle_One_Mesh = null;
+    this.paddle_Two_Mesh = null;
+    this.ballMesh = null;
+  }
 
-  //   const player1 = currentRoundPlayers[nextMatchIndex];
-  //   const player2 = currentRoundPlayers[nextMatchIndex + 1];
-  //   this.currentMatch = { player1, player2, index: nextMatchIndex };
-
-  //   console.log('Starting match:', this.currentMatch);
-
-  //   this.resetGame();
-  //   this.setState({
-  //     playerLeft: player1.name,
-  //     playerRight: player2.name,
-  //   });
-
-  //   console.log(`Match started: ${player1.name} vs ${player2.name}`);
-  // }
-
-  resetGame() {
-    this.setState({
-      scoreLeft: 0,
-      scoreRight: 0,
-    });
-    this.playerOnePoint = 0;
-    this.playerTwoPoint = 0;
-    this.isGameOver = false;
-    this.resetBall();
+  createGameElements() {
+    this.createBall();
+    this.createPaddles();
+    this.createThreeJsObjects();
   }
 
   setupScene() {
@@ -460,9 +422,7 @@ export default class PlayerGame extends Component {
     this.scoreElement.style.left = '50%';
     this.scoreElement.style.transform = 'translateX(-50%)';
     this.scoreElement.style.color = 'white';
-    // this.scoreElement.style.fontSize = '24px';
     this.scoreElement.style.fontFamily = 'Arial, sans-serif';
-    // this.scoreElement.textContent = '0 - 0';
     document.body.appendChild(this.scoreElement);
   }
 
@@ -548,7 +508,6 @@ export default class PlayerGame extends Component {
       this.setState({ scoreRight: this.$state.scoreRight + 1 });
       this.resetBall();
     }
-    // this.scoreElement.textContent = `${this.playerOnePoint} - ${this.playerTwoPoint}`;
   }
 
   updateScoreDisplay() {
@@ -560,6 +519,9 @@ export default class PlayerGame extends Component {
 
   endGame() {
     if (this.isGameOver) return;
+    var modal = document.getElementById('myModal');
+    var closeModalBtn = document.getElementsByClassName('close')[0];
+    var modalText = document.getElementById('modalText');
 
     let winner, loser;
     if (this.$state.scoreLeft >= 2) {
@@ -587,41 +549,29 @@ export default class PlayerGame extends Component {
 
     // Start next match after a short delay
     setTimeout(() => this.startNextMatch(), 3000);
-  }
 
-  showGameResult(winner, loser) {
-    const modal = document.getElementById('myModal');
-    const modalText = document.getElementById('modalText');
-    modal.style.display = 'block';
-    modalText.textContent = `${winner.name} wins against ${loser.name}!`;
-
-    setTimeout(() => {
+    closeModalBtn.onclick = function () {
       modal.style.display = 'none';
-    }, 2000);
+    };
+
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    };
+    // restartButton.onclick = () => {
+    //   modal.style.display = 'none';
+    //   this.navigateToNewGame();
+    // };
+    homeButton.onclick = () => {
+      modal.style.display = 'none';
+      this.navigateToHome();
+    };
   }
 
-  endTournament() {
-    const winner = this.tournamentRounds[this.tournamentRounds.length - 1][0];
-    const modal = document.getElementById('myModal');
-    const modalText = document.getElementById('modalText');
-    modal.style.display = 'block';
-    modalText.textContent = `Tournament Winner: ${winner.name}!`;
-  }
-
-  resetGame() {
-    this.setState({
-      scoreLeft: 0,
-      scoreRight: 0,
-      playerLeft: 'Human',
-      playerRight: 'Ai',
-    });
-    this.isGameOver = false;
-    // 다른 필요한 상태 초기화
-  }
   navigateToNewGame() {
     console.log('Navigating to new game');
     this.cleanup();
-    this.resetGame(); // 게임 상태 초기화
     this.init(); // 게임 재초기화
 
     // 모달 닫기
@@ -637,6 +587,31 @@ export default class PlayerGame extends Component {
     this.cleanup();
     window.location.hash = '#ingame-1';
   }
+
+  showGameResult(winner, loser) {
+    const modal = document.getElementById('myModal');
+    const modalText = document.getElementById('modalText');
+    modal.style.display = 'block';
+    modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 2000);
+  }
+
+  endTournament() {
+    const winner = this.tournamentRounds[this.tournamentRounds.length - 1][0];
+    const modal = document.getElementById('myModal');
+    const modalText = document.getElementById('modalText');
+    modal.style.display = 'block';
+    modalText.textContent = `Tournament Winner: ${winner.name}!`;
+  }
+
+  navigateToHome() {
+    console.log('Navigating to home');
+    this.cleanup();
+    window.location.hash = '#ingame-1';
+  }
+
   updateAiTarget() {
     const currentTime = Date.now();
     if (currentTime - this.lastUpdateTime >= 1000) {
@@ -669,7 +644,6 @@ export default class PlayerGame extends Component {
     });
   }
 
-  //add
   setEvent() {
     this.addEventListeners();
   }
@@ -681,19 +655,8 @@ export default class PlayerGame extends Component {
 
   mounted() {
     const canvasContainer = this.$target.querySelector('#game-canvas');
-    // if (canvasContainer) {
-    //   this.setupScene(canvasContainer);
-    //   this.setupPhysics();
-    //   this.createWalls();
-    //   this.createBall();
-    //   this.createPaddles();
-    //   this.createThreeJsObjects();
-    //   this.loadBackground();
-    //   this.animate();
-    // } else {
-    //   console.error('Canvas container not found');
-    // }
   }
+
   animate() {
     if (this.isGameOver) {
       return;
@@ -779,10 +742,6 @@ export default class PlayerGame extends Component {
       this.engine = null;
     }
 
-    // Remove event listeners
-    // document.removeEventListener('keydown', this.handleKeyPress);
-    // window.removeEventListener('resize', this.handleResize);
-
     // Clear DOM elements
     if (this.$target) {
       this.$target.innerHTML = '';
@@ -795,14 +754,13 @@ export default class PlayerGame extends Component {
     // Reset game state
     this.isGameOver = true;
     this.ball = null;
-    // this.paddle_one = null;
-    // this.paddle_two = null;
     this.ballMesh = null;
     this.paddle_One_Mesh = null;
     this.paddle_Two_Mesh = null;
 
     super.cleanup();
   }
+
   unmounted() {
     console.log('-----------unmount-----------');
     this.cleanup();
