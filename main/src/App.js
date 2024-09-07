@@ -8,6 +8,7 @@ import TourStandByFour from './pages/TourStandByFour.js';
 import TourStandByEight from './pages/TourStandByEight.js';
 import WaitingRoom from './pages/WaitingRoom.js';
 import GamePage from './pages/GamePage.js';
+import Game from './game/Game.js';
 import AiGame from './game/AiGame.js';
 import AiPage from './game/AiPage.js';
 import PlayerGame from './game/PlayerGame.js';
