@@ -1,17 +1,8 @@
-
-
-
-```
 import Component from '../core/Component.js';
 
 export default class PlayerGame extends Component {
   constructor(props) {
     super(props);
-    this.playerCount = this.getPlayerCount();
-    this.players = [];
-    this.currentRound = 0;
-    this.tournamentRounds = [];
-    this.currentMatch = null;
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
     this.scene = null;
@@ -41,15 +32,6 @@ export default class PlayerGame extends Component {
     this.loadPlayersFromSessionStorage();
   }
 
-  getPlayerCount() {
-    const playersJSON = sessionStorage.getItem('players');
-    if (playersJSON) {
-      const players = JSON.parse(playersJSON);
-      return Object.keys(players).length;
-    }
-    return 2;
-  }
-
   setup() {
     this.setState({
       image: '../../main/public/pongmatch.png',
@@ -66,9 +48,15 @@ export default class PlayerGame extends Component {
   loadPlayersFromSessionStorage() {
     const playersJSON = sessionStorage.getItem('players');
     if (playersJSON) {
-      const playersObj = JSON.parse(playersJSON);
-      this.players = Object.values(playersObj);
+      this.players = JSON.parse(playersJSON);
       this.setState({ players: this.players });
+
+      if (this.players.length >= 2) {
+        this.setState({
+          playerLeft: this.players[0].name,
+          playerRight: this.players[1].name,
+        });
+      }
     } else {
       console.error('No players found in sessionStorage');
     }
@@ -157,7 +145,6 @@ export default class PlayerGame extends Component {
   }
 
   startNextMatch() {
-    this.currentRound++;
     if (this.currentRound >= this.tournamentRounds.length - 1) {
       this.endTournament();
       return;
@@ -168,6 +155,7 @@ export default class PlayerGame extends Component {
       (player) => player !== null
     );
     if (nextMatchIndex === -1) {
+      this.currentRound++;
       this.startNextMatch();
       return;
     }
@@ -459,49 +447,35 @@ export default class PlayerGame extends Component {
     }
   }
 
-  // endGame() {
-  //   if (this.isGameOver) return;
-
-  //   let winner, loser;
-  //   if (this.playerOnePoint >= 2) {
-  //     winner = this.currentMatch.player1;
-  //     loser = this.currentMatch.player2;
-  //   } else if (this.playerTwoPoint >= 2) {
-  //     winner = this.currentMatch.player2;
-  //     loser = this.currentMatch.player1;
-  //   } else {
-  //     return; // Game is not over yet
-  //   }
-
-  //   this.isGameOver = true;
-
-  //   // Update tournament brackets
-  //   this.tournamentRounds[this.currentRound][this.currentMatch.index] = null;
-  //   this.tournamentRounds[this.currentRound][this.currentMatch.index + 1] =
-  //     null;
-  //   this.tournamentRounds[this.currentRound + 1][
-  //     Math.floor(this.currentMatch.index / 2)
-  //   ] = winner;
-
-  //   // Display result
-  //   this.showGameResult(winner, loser);
-
-  //   // Start next match after a short delay
-  //   setTimeout(() => this.startNextMatch(), 3000);
-  // }
   endGame() {
-    this.isGameOver = true;
+    if (this.isGameOver) return;
+
     let winner, loser;
-    if (this.state.scoreLeft >= 5) {
+    if (this.playerOnePoint >= 2) {
       winner = this.currentMatch.player1;
       loser = this.currentMatch.player2;
-    } else {
+    } else if (this.playerTwoPoint >= 2) {
       winner = this.currentMatch.player2;
       loser = this.currentMatch.player1;
+    } else {
+      return; // Game is not over yet
     }
 
+    this.isGameOver = true;
+
+    // Update tournament brackets
+    this.tournamentRounds[this.currentRound][this.currentMatch.index] = null;
+    this.tournamentRounds[this.currentRound][this.currentMatch.index + 1] =
+      null;
+    this.tournamentRounds[this.currentRound + 1][
+      Math.floor(this.currentMatch.index / 2)
+    ] = winner;
+
+    // Display result
     this.showGameResult(winner, loser);
-    this.updateTournament(winner);
+
+    // Start next match after a short delay
+    setTimeout(() => this.startNextMatch(), 3000);
   }
 
   // endGame() {
@@ -542,17 +516,6 @@ export default class PlayerGame extends Component {
   //   // }
   // }
 
-  // showGameResult(winner, loser) {
-  //   const modal = document.getElementById('myModal');
-  //   const modalText = document.getElementById('modalText');
-  //   modal.style.display = 'block';
-  //   modalText.textContent = `${winner.name} wins against ${loser.name}!`;
-
-  //   setTimeout(() => {
-  //     modal.style.display = 'none';
-  //   }, 2000);
-  // }
-
   showGameResult(winner, loser) {
     const modal = document.getElementById('myModal');
     const modalText = document.getElementById('modalText');
@@ -561,17 +524,7 @@ export default class PlayerGame extends Component {
 
     setTimeout(() => {
       modal.style.display = 'none';
-      this.startNextMatch();
-    }, 3000);
-  }
-
-  updateTournament(winner) {
-    this.tournamentRounds[this.currentRound][this.currentMatch.index] = null;
-    this.tournamentRounds[this.currentRound][this.currentMatch.index + 1] =
-      null;
-    this.tournamentRounds[this.currentRound + 1][
-      Math.floor(this.currentMatch.index / 2)
-    ] = winner;
+    }, 2000);
   }
 
   endTournament() {
@@ -705,33 +658,6 @@ export default class PlayerGame extends Component {
     requestAnimationFrame(this.animate.bind(this));
   }
 
-  endTournament() {
-    const winner = this.tournamentRounds[this.tournamentRounds.length - 1][0];
-    const modal = document.getElementById('myModal');
-    const modalText = document.getElementById('modalText');
-    modal.style.display = 'block';
-    modalText.textContent = `Tournament Winner: ${winner.name}!`;
-
-    const restartButton = document.createElement('button');
-    restartButton.textContent = 'Restart Tournament';
-    restartButton.onclick = () => this.restartTournament();
-
-    const mainMenuButton = document.createElement('button');
-    mainMenuButton.textContent = 'Main Menu';
-    mainMenuButton.onclick = () => this.goToMainMenu();
-
-    modalText.appendChild(restartButton);
-    modalText.appendChild(mainMenuButton);
-  }
-
-  restartTournament() {
-    this.currentRound = 0;
-    this.setupTournament();
-    const modal = document.getElementById('myModal');
-    modal.style.display = 'none';
-    this.resetGame();
-  }
-
   disposeSceneObjects(scene) {
     scene.traverse((object) => {
       if (object.geometry) {
@@ -810,4 +736,3 @@ export default class PlayerGame extends Component {
     super.unmounted();
   }
 }
-```
