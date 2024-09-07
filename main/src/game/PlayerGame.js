@@ -673,7 +673,9 @@ export default class PlayerGame extends Component {
     // Display result
     if (modal && modalText) {
       modal.style.display = 'block';
-      modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+      modalText.textContent = `${winner.name} ${this.getText('winner')} ${
+        loser.name
+      }!`;
     }
 
     // Set up home button
