@@ -125,7 +125,7 @@ export default class AiGame extends Component {
 
   loadBackground() {
     const loader = new THREE.TextureLoader();
-    loader.load('public/tables.png', (texture) => {
+    loader.load('public/table2.png', (texture) => {
       this.backgroundTexture = texture;
       this.backgroundTexture.encoding = THREE.sRGBEncoding;
       this.scene.background = this.backgroundTexture;
@@ -410,9 +410,22 @@ export default class AiGame extends Component {
 
   endGame() {
     if (this.isGameOver) return;
+
     var modal = document.getElementById('myModal');
-    var closeModalBtn = document.getElementsByClassName('close')[0];
+    if (!modal) {
+      console.error('Modal element not found');
+      return;
+    }
+
     var modalText = document.getElementById('modalText');
+    if (!modalText) {
+      console.error('Modal text element not found');
+      return;
+    }
+
+    // var closeModalBtn = modal.querySelector('.close');
+    var restartButton = document.getElementById('restartButton');
+    var homeButton = document.getElementById('homeButton');
 
     if (this.$state.scoreLeft >= 1) {
       modal.style.display = 'block';
@@ -424,25 +437,38 @@ export default class AiGame extends Component {
       this.isGameOver = true;
     }
 
-    closeModalBtn.onclick = function () {
-      modal.style.display = 'none';
-    };
+    // if (closeModalBtn) {
+    //   closeModalBtn.onclick = () => {
+    //     modal.style.display = 'none';
+    //   };
+    // } else {
+    //   console.warn('Close button not found in modal');
+    // }
 
-    window.onclick = function (event) {
+    window.onclick = (event) => {
       if (event.target == modal) {
         modal.style.display = 'none';
       }
     };
-    restartButton.onclick = () => {
-      modal.style.display = 'none';
-      this.navigateToNewGame();
-    };
-    homeButton.onclick = () => {
-      modal.style.display = 'none';
-      this.navigateToHome();
-    };
-  }
 
+    if (restartButton) {
+      restartButton.onclick = () => {
+        modal.style.display = 'none';
+        this.navigateToNewGame();
+      };
+    } else {
+      console.warn('Restart button not found');
+    }
+
+    if (homeButton) {
+      homeButton.onclick = () => {
+        modal.style.display = 'none';
+        this.navigateToHome();
+      };
+    } else {
+      console.warn('Home button not found');
+    }
+  }
   resetGame() {
     this.setState({
       scoreLeft: 0,

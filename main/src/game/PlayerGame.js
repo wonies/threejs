@@ -44,6 +44,8 @@ export default class PlayerGame extends Component {
     this.setup();
     this.loadPlayersFromSessionStorage();
     this.language = sessionStorage.getItem('language');
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.handleResize = this.handleResize.bind(this);
   }
 
   setup() {
@@ -201,6 +203,16 @@ export default class PlayerGame extends Component {
       this.backgroundTexture.encoding = THREE.sRGBEncoding;
       this.scene.background = this.backgroundTexture;
     });
+  }
+
+  setupEventListeners() {
+    document.addEventListener('keydown', this.handleKeyPress);
+    window.addEventListener('resize', this.handleResize);
+  }
+
+  removeEventListeners() {
+    document.removeEventListener('keydown', this.handleKeyPress);
+    window.removeEventListener('resize', this.handleResize);
   }
 
   setupTournament() {
