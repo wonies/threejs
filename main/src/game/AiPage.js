@@ -1,5 +1,4 @@
 import AiGame from './AiGame.js';
-import BtnGame from './BtnGame.js';
 import Component from '../core/Component.js';
 
 export default class AiPage extends Component {
@@ -12,20 +11,19 @@ export default class AiPage extends Component {
       </div>
     `;
   }
+
   mounted() {
     const $back = this.$target.querySelector(
       '[data-component="background-container"]'
     );
-    const $start = this.$target.querySelector(
-      '[data-component="add-page-container"]'
-    );
-
-    new AiGame($back);
-    // new BtnGame($start);
+    this.aiGame = new AiGame($back);
   }
 
-  destroy() {
-    this.removeEvent();
-    super.destroy();
+  unmount() {
+    if (this.aiGame && typeof this.aiGame.cleanup === 'function') {
+      console.log('Cleaning up AiGame');
+      this.aiGame.cleanup();
+    }
+    super.unmounted();
   }
 }

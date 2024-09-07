@@ -1,6 +1,6 @@
 import Component from '../core/Component.js';
 
-export default class AiGame extends Component {
+export default class PlayerGame extends Component {
   constructor(props) {
     super(props);
     this.gameWidth = window.innerWidth;
@@ -39,13 +39,24 @@ export default class AiGame extends Component {
       scoreRight: 0,
       playerLeft: '',
       playerRight: '',
+      players: [],
     });
+    this.loadPlayersFromSessionStorage();
+    this.setupTournament();
   }
+
   loadPlayersFromSessionStorage() {
     const playersJSON = sessionStorage.getItem('players');
     if (playersJSON) {
       this.players = JSON.parse(playersJSON);
-      console.log(this.players);
+      this.setState({ players: this.players });
+
+      if (this.players.length >= 2) {
+        this.setState({
+          playerLeft: this.players[0].name,
+          playerRight: this.players[1].name,
+        });
+      }
     } else {
       console.error('No players found in sessionStorage');
     }
@@ -63,6 +74,20 @@ export default class AiGame extends Component {
     this.animate();
     this.loadBackground();
   }
+
+  // template() {
+  //   const { scoreLeft, scoreRight, playerLeft, playerRight, players } =
+  //     this.$state;
+  //   return `
+  //   <div class="game-canvas">
+  //     <div class="game-ui">
+  //       <div class="score-display">${scoreLeft} : ${scoreRight}</div>
+  //       <div class="player-display">${playerLeft} vs ${playerRight}</div>
+  //     </div>
+  //     <div id="tournament-dashboard"></div>
+  //   </div>
+  // `;
+  // }
 
   template() {
     const { scoreLeft, scoreRight, image, playerLeft, playerRight } =
@@ -96,6 +121,65 @@ export default class AiGame extends Component {
       this.backgroundTexture.encoding = THREE.sRGBEncoding;
       this.scene.background = this.backgroundTexture;
     });
+  }
+
+  setupTournament() {
+    const playerCount = this.players.length;
+    if (![2, 4, 8].includes(playerCount)) {
+      console.error('Invalid number of players for tournament');
+      return;
+    }
+
+    this.tournamentRounds = [this.players];
+    while (this.tournamentRounds[this.tournamentRounds.length - 1].length > 1) {
+      const currentRound =
+        this.tournamentRounds[this.tournamentRounds.length - 1];
+      const nextRound = [];
+      for (let i = 0; i < currentRound.length; i += 2) {
+        nextRound.push(null); // Placeholder for the winner
+      }
+      this.tournamentRounds.push(nextRound);
+    }
+
+    this.startNextMatch();
+  }
+
+  startNextMatch() {
+    if (this.currentRound >= this.tournamentRounds.length - 1) {
+      this.endTournament();
+      return;
+    }
+
+    const currentRoundPlayers = this.tournamentRounds[this.currentRound];
+    let nextMatchIndex = currentRoundPlayers.findIndex(
+      (player) => player !== null
+    );
+    if (nextMatchIndex === -1) {
+      this.currentRound++;
+      this.startNextMatch();
+      return;
+    }
+
+    const player1 = currentRoundPlayers[nextMatchIndex];
+    const player2 = currentRoundPlayers[nextMatchIndex + 1];
+    this.currentMatch = { player1, player2, index: nextMatchIndex };
+
+    this.resetGame();
+    this.setState({
+      playerLeft: player1.name,
+      playerRight: player2.name,
+    });
+  }
+
+  resetGame() {
+    this.setState({
+      scoreLeft: 0,
+      scoreRight: 0,
+    });
+    this.playerOnePoint = 0;
+    this.playerTwoPoint = 0;
+    this.isGameOver = false;
+    this.resetBall();
   }
 
   setupScene() {
@@ -365,40 +449,90 @@ export default class AiGame extends Component {
 
   endGame() {
     if (this.isGameOver) return;
-    var modal = document.getElementById('myModal');
-    var closeModalBtn = document.getElementsByClassName('close')[0];
-    var modalText = document.getElementById('modalText');
 
-    if (this.$state.scoreLeft >= 1) {
-      modal.style.display = 'block';
-      modalText.textContent = 'Human WIN!';
-      this.isGameOver = true;
-    } else if (this.$state.scoreRight >= 1) {
-      modal.style.display = 'block';
-      modalText.textContent = 'Ai Win!';
-      this.isGameOver = true;
+    let winner, loser;
+    if (this.playerOnePoint >= 2) {
+      winner = this.currentMatch.player1;
+      loser = this.currentMatch.player2;
+    } else if (this.playerTwoPoint >= 2) {
+      winner = this.currentMatch.player2;
+      loser = this.currentMatch.player1;
+    } else {
+      return; // Game is not over yet
     }
 
-    closeModalBtn.onclick = function () {
-      modal.style.display = 'none';
-    };
+    this.isGameOver = true;
 
-    window.onclick = function (event) {
-      if (event.target == modal) {
-        modal.style.display = 'none';
-      }
-    };
-    restartButton.onclick = () => {
+    // Update tournament brackets
+    this.tournamentRounds[this.currentRound][this.currentMatch.index] = null;
+    this.tournamentRounds[this.currentRound][this.currentMatch.index + 1] =
+      null;
+    this.tournamentRounds[this.currentRound + 1][
+      Math.floor(this.currentMatch.index / 2)
+    ] = winner;
+
+    // Display result
+    this.showGameResult(winner, loser);
+
+    // Start next match after a short delay
+    setTimeout(() => this.startNextMatch(), 3000);
+  }
+
+  // endGame() {
+  //   if (this.isGameOver) return;
+  //   var modal = document.getElementById('myModal');
+  //   var closeModalBtn = document.getElementsByClassName('close')[0];
+  //   var modalText = document.getElementById('modalText');
+
+  //   if (this.$state.scoreLeft >= 1) {
+  //     modal.style.display = 'block';
+  //     modalText.textContent = 'Human WIN!';
+  //     this.isGameOver = true;
+  //   } else if (this.$state.scoreRight >= 1) {
+  //     modal.style.display = 'block';
+  //     modalText.textContent = 'Ai Win!';
+  //     this.isGameOver = true;
+  //   }
+
+  //   closeModalBtn.onclick = function () {
+  //     modal.style.display = 'none';
+  //   };
+
+  //   window.onclick = function (event) {
+  //     if (event.target == modal) {
+  //       modal.style.display = 'none';
+  //     }
+  //   };
+  //   restartButton.onclick = () => {
+  //     modal.style.display = 'none';
+  //     this.navigateToNewGame();
+  //   };
+  //   homeButton.onclick = () => {
+  //     modal.style.display = 'none';
+  //     this.navigateToHome();
+  //   };
+  //   // if (this.isGameOver) {
+  //   //   this.cleanup();
+  //   // }
+  // }
+
+  showGameResult(winner, loser) {
+    const modal = document.getElementById('myModal');
+    const modalText = document.getElementById('modalText');
+    modal.style.display = 'block';
+    modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+
+    setTimeout(() => {
       modal.style.display = 'none';
-      this.navigateToNewGame();
-    };
-    homeButton.onclick = () => {
-      modal.style.display = 'none';
-      this.navigateToHome();
-    };
-    // if (this.isGameOver) {
-    //   this.cleanup();
-    // }
+    }, 2000);
+  }
+
+  endTournament() {
+    const winner = this.tournamentRounds[this.tournamentRounds.length - 1][0];
+    const modal = document.getElementById('myModal');
+    const modalText = document.getElementById('modalText');
+    modal.style.display = 'block';
+    modalText.textContent = `Tournament Winner: ${winner.name}!`;
   }
 
   resetGame() {

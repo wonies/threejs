@@ -54,12 +54,15 @@ export default class TournamentPage extends InGamePage {
         if (optType === 'select1') {
           console.log(`selected option: ${this.$state.opt}`);
           this.handleTwoBattle();
+          this.removeEvent();
         } else if (optType === 'select2') {
           console.log(`selected option: ${this.$state.opt2}`);
           this.handleFourBattle();
+          this.removeEvent();
         } else if (optType === 'select3') {
           console.log(`selected option: ${this.$state.opt3}`);
           this.handleEightBattle();
+          this.removeEvent();
         }
       }
     }.bind(this);

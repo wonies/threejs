@@ -59,10 +59,10 @@ export default class WaitingRoom extends InGamePage {
     const playerCount = this.$state.playerNames.length;
     if (playerCount === 2) {
       console.log('1v1 게임 시작!');
-      window.location.hash = '#game-1v1';
+      window.location.hash = '#tour-game';
     } else {
       console.log('토너먼트 시작!');
-      window.location.hash = '#tournament';
+      window.location.hash = '#tour-game';
     }
   }
 

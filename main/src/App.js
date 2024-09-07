@@ -68,12 +68,15 @@ export default class App extends Component {
       this.$state.routes[0];
     const $main = this.$target.querySelector('main');
 
-    if (
-      this.currentComponent &&
-      typeof this.currentComponent.unmount === 'function'
-    ) {
-      console.log('Unmounting previous component');
-      this.currentComponent.unmount();
+    if (this.currentComponent) {
+      if (typeof this.currentComponent.unmount === 'function') {
+        console.log('Unmounting previous component');
+        this.currentComponent.unmount();
+      } else if (typeof this.currentComponent.cleanup === 'function') {
+        console.log('Cleaning up previous component');
+        this.currentComponent.cleanup();
+      }
+      this.currentComponent = null;
     }
 
     console.log('Mounting new component:', routeInfo.component.name);
@@ -83,6 +86,27 @@ export default class App extends Component {
 
     console.log('Route info:', routeInfo);
   }
+  // route(hash) {
+  //   const routeInfo =
+  //     this.$state.routes.find((route) => route.path === hash) ||
+  //     this.$state.routes[0];
+  //   const $main = this.$target.querySelector('main');
+
+  //   if (
+  //     this.currentComponent &&
+  //     typeof this.currentComponent.unmount === 'function'
+  //   ) {
+  //     console.log('Unmounting previous component');
+  //     this.currentComponent.unmount();
+  //   }
+
+  //   console.log('Mounting new component:', routeInfo.component.name);
+  //   this.currentComponent = new routeInfo.component($main);
+
+  //   this.updateHash(routeInfo.path);
+
+  //   console.log('Route info:', routeInfo);
+  // }
 
   setEvent() {
     window.addEventListener('hashchange', this.handleHashChange.bind(this));
