@@ -31,6 +31,7 @@ export default class PlayerGame extends Component {
     this.lastUpdateTime = Date.now();
     this.initialSpeed = this.gameWidth * 0.003;
     this.players = [];
+    this.modal = null;
     this.init();
     console.log('-----------constructor-----------');
     this.setup();
@@ -62,6 +63,13 @@ export default class PlayerGame extends Component {
       return Object.keys(players).length;
     }
     return 2;
+  }
+
+  getModal() {
+    if (!this.modal) {
+      this.modal = document.getElementById('myModal');
+    }
+    return this.modal;
   }
 
   loadPlayersFromSessionStorage() {
@@ -545,7 +553,7 @@ export default class PlayerGame extends Component {
     ] = winner;
 
     // Display result
-    this.showGameResult(winner, loser);
+    // this.showGameResult(winner, loser);
 
     // Start next match after a short delay
     setTimeout(() => this.startNextMatch(), 3000);
@@ -589,26 +597,39 @@ export default class PlayerGame extends Component {
   }
 
   showGameResult(winner, loser) {
-    const modal = document.getElementById('myModal');
-    const modalText = document.getElementById('modalText');
+    const modal = this.getModal();
+    if (!modal) return;
+
+    const modalText = modal.querySelector('#modalText');
     modal.style.display = 'block';
     modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+
     setTimeout(() => {
-      modal.style.display = 'none';
+      this.hideModal();
     }, 2000);
   }
 
   endTournament() {
     const winner = this.tournamentRounds[this.tournamentRounds.length - 1][0];
-    const modal = document.getElementById('myModal');
-    const modalText = document.getElementById('modalText');
+    const modal = this.getModal();
+    if (!modal) return;
+
+    const modalText = modal.querySelector('#modalText');
     modal.style.display = 'block';
     modalText.textContent = `Tournament Winner: ${winner.name}!`;
+  }
+
+  hideModal() {
+    const modal = this.getModal();
+    if (modal) {
+      modal.style.display = 'none';
+    }
   }
 
   navigateToHome() {
     console.log('Navigating to home');
     this.cleanup();
+    // this.hideModal();
     window.location.hash = '#ingame-1';
   }
 
@@ -757,6 +778,11 @@ export default class PlayerGame extends Component {
     this.ballMesh = null;
     this.paddle_One_Mesh = null;
     this.paddle_Two_Mesh = null;
+    this.hideModal();
+    if (this.modal) {
+      this.modal.remove();
+      this.modal = null;
+    }
 
     super.cleanup();
   }
