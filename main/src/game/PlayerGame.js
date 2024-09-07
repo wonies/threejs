@@ -155,6 +155,12 @@ export default class PlayerGame extends Component {
   }
 
   setupTournament() {
+    if (this.players.length === 0) {
+      console.error('Cannot start tournament: No players available');
+      // Handle this error condition (e.g., show error message, redirect)
+      return;
+    }
+
     const playerCount = this.players.length;
     if (![2, 4, 8].includes(playerCount)) {
       console.error('Invalid number of players for tournament');
@@ -222,10 +228,22 @@ export default class PlayerGame extends Component {
     console.log('Starting match:', this.currentMatch);
 
     this.resetGame();
+    this.resetBall();
+    this.createPaddles();
     this.setState({
       playerLeft: player1Name,
       playerRight: player2Name,
+      scoreLeft: 0,
+      scoreRight: 0,
     });
+    // this.paddle_one = null;
+    // this.paddle_two = null;
+    // World.remove(world, pair.bodyA);
+    // World.delete(this.world, [this.paddle_one, this.paddle_two]);
+    this.isGameOver = false;
+    if (!this.animationId) {
+      this.animate();
+    }
 
     console.log(`Match started: ${player1Name} vs ${player2Name}`);
   }
