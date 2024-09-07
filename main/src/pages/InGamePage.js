@@ -18,22 +18,40 @@ export default class InGame extends Component {
   }
 
   template() {
-    const { image, opt, opt2 } = this.$state;
+    const { image } = this.$state;
+    const language = sessionStorage.getItem('language');
+    console.log('lan:', language);
     return `
-        <div class="ingame-container">
+      <div class="ingame-container">
         <div class="account-image">
-            <img src="${image}" alt="pong">
+          <img src="${image}" alt="pong">
         </div>
         <div class="pick-option">
-            <div class="option" data-option="opt1">
-            <span>${opt}</span>
-            </div>
-            <div class="option" data-option="opt2">
-            <span>${opt2}</span>
-            </div>
+          <div class="option" data-option="opt1">
+            <span>${this.getOptionText('tournament', language)}</span>
+          </div>
+          <div class="option" data-option="opt2">
+            <span>${this.getOptionText('ai', language)}</span>
+          </div>
         </div>
-        </div>
-      `;
+      </div>
+    `;
+  }
+
+  getOptionText(option, lang) {
+    const texts = {
+      tournament: {
+        en: 'Tournament',
+        ko: '토너먼트',
+        ja: 'トーナメント',
+      },
+      ai: {
+        en: 'AI Battle',
+        ko: 'AI 대전',
+        ja: 'AI対戦',
+      },
+    };
+    return texts[option][lang] || texts[option].en;
   }
 
   removeEvent() {

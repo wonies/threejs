@@ -3,6 +3,10 @@ import Component from '../core/Component.js';
 export default class PlayerGame extends Component {
   constructor(props) {
     super(props);
+    this.topWall = null;
+    this.bottomWall = null;
+    this.wallMeshTop = null;
+    this.wallMeshBottom = null;
     this.playerCount = 0;
     this.players = [];
     this.currentRound = 0;
@@ -30,12 +34,16 @@ export default class PlayerGame extends Component {
     this.lastBallPosition = { x: 0, y: 0 };
     this.lastUpdateTime = Date.now();
     this.initialSpeed = this.gameWidth * 0.003;
+    this.currentSpeed = this.initialSpeed;
+    this.speedIncreaseRate = 1.05; // 5% 속도 증가
+    this.maxSpeed = this.initialSpeed * 2; // 최대 속도는 초기 속도의 2배
     this.players = [];
     this.modal = null;
     this.init();
     console.log('-----------constructor-----------');
     this.setup();
     this.loadPlayersFromSessionStorage();
+    this.language = sessionStorage.getItem('language');
   }
 
   setup() {
@@ -54,6 +62,57 @@ export default class PlayerGame extends Component {
     } else {
       console.error('No players available for the tournament');
     }
+  }
+
+  getText(key) {
+    const texts = {
+      homeButton: {
+        en: 'Go to Home',
+        ko: '홈으로 가기',
+        ja: 'ホームへ',
+      },
+      newChallenge: {
+        en: 'New Challenge!',
+        ko: '새로운 도전!',
+        ja: '新しいチャレンジ！',
+      },
+      areYouReady: {
+        en: 'Are you ready?',
+        ko: '준비되셨나요?',
+        ja: '準備はできましたか？',
+      },
+      player: {
+        en: 'Player',
+        ko: '플레이어',
+        ja: 'プレイヤー',
+      },
+      waiting: {
+        en: 'Waiting for more players...',
+        ko: '더 많은 플레이어를 기다리는 중...',
+        ja: 'プレイヤーを待っています...',
+      },
+      startGame: {
+        en: 'Start 1v1 Game',
+        ko: '1대1 게임 시작',
+        ja: '1対1ゲーム開始',
+      },
+      startTournament: {
+        en: 'Start Tournament',
+        ko: '토너먼트 시작',
+        ja: 'トーナメント開始',
+      },
+      winner: {
+        en: 'wins against',
+        ko: '가 다음 상대를 이겼습니다:',
+        ja: 'が次の相手に勝ちました：',
+      },
+      tournamentWinner: {
+        en: 'Tournament Winner:',
+        ko: '토너먼트 우승자:',
+        ja: 'トーナメント優勝者：',
+      },
+    };
+    return texts[key][this.language] || texts[key].en;
   }
 
   getPlayerCount() {
@@ -127,7 +186,7 @@ export default class PlayerGame extends Component {
           <div class="modal-content">
             <h2 id="modalText"></h2>
             <div class="modal-buttons">
-              <button id="homeButton">홈으로 가기</button>
+              <button id="homeButton">${this.getText('homeButton')}</button>
             </div>
           </div>
         </div>
@@ -234,17 +293,14 @@ export default class PlayerGame extends Component {
   }
 
   cleanupGameElements() {
-    // Remove existing paddles and ball from the physics world
     if (this.paddle_one) Matter.World.remove(this.world, this.paddle_one);
     if (this.paddle_two) Matter.World.remove(this.world, this.paddle_two);
     if (this.ball) Matter.World.remove(this.world, this.ball);
 
-    // Remove existing meshes from the scene
     if (this.paddle_One_Mesh) this.scene.remove(this.paddle_One_Mesh);
     if (this.paddle_Two_Mesh) this.scene.remove(this.paddle_Two_Mesh);
     if (this.ballMesh) this.scene.remove(this.ballMesh);
 
-    // Dispose of geometries and materials
     if (this.paddle_One_Mesh) {
       this.paddle_One_Mesh.geometry.dispose();
       this.paddle_One_Mesh.material.dispose();
@@ -258,7 +314,6 @@ export default class PlayerGame extends Component {
       this.ballMesh.material.dispose();
     }
 
-    // Reset references
     this.paddle_one = null;
     this.paddle_two = null;
     this.ball = null;
@@ -293,7 +348,7 @@ export default class PlayerGame extends Component {
   }
 
   setupPhysics() {
-    const { Engine, World, Resolver } = Matter;
+    const { Engine, World, Resolver, Events } = Matter;
 
     this.engine = Engine.create({
       gravity: { x: 0, y: 0, scale: 0 },
@@ -302,13 +357,18 @@ export default class PlayerGame extends Component {
     Resolver._restingThresh = 0.001;
 
     this.world = this.engine.world;
+
+    // 충돌 이벤트 리스너 추가
+    Events.on(this.engine, 'collisionStart', (event) => {
+      this.handleCollision(event);
+    });
   }
 
   createWalls() {
     const { Bodies, World } = Matter;
     const wallThickness = 10;
 
-    const createWall = (x, y, width, height) => {
+    const createWall = (x, y, width, height, label) => {
       return Bodies.rectangle(x, y, width, height, {
         isStatic: true,
         restitution: 1,
@@ -316,23 +376,26 @@ export default class PlayerGame extends Component {
         density: 1,
         slop: 0,
         render: { visible: false },
+        label: label,
       });
     };
 
-    const topWall = createWall(
+    this.topWall = createWall(
       0,
       -this.gameHeight / 2,
       this.gameWidth,
-      wallThickness
+      wallThickness,
+      'topWall'
     );
-    const bottomWall = createWall(
+    this.bottomWall = createWall(
       0,
       this.gameHeight / 2,
       this.gameWidth,
-      wallThickness
+      wallThickness,
+      'bottomWall'
     );
 
-    World.add(this.world, [topWall, bottomWall]);
+    World.add(this.world, [this.topWall, this.bottomWall]);
   }
 
   createBall() {
@@ -395,23 +458,20 @@ export default class PlayerGame extends Component {
   }
 
   createThreeJsObjects() {
-    // Create walls
     const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const wallGeometryTop = new THREE.BoxGeometry(this.gameWidth, 10, 0);
     const wallGeometryBottom = new THREE.BoxGeometry(this.gameWidth, 10, 0);
-    const wallMeshTop = new THREE.Mesh(wallGeometryTop, wallMaterial);
-    const wallMeshBottom = new THREE.Mesh(wallGeometryBottom, wallMaterial);
-    wallMeshTop.position.set(0, -this.gameHeight / 2, 0);
-    wallMeshBottom.position.set(0, this.gameHeight / 2, 0);
-    this.scene.add(wallMeshTop, wallMeshBottom);
+    this.wallMeshTop = new THREE.Mesh(wallGeometryTop, wallMaterial);
+    this.wallMeshBottom = new THREE.Mesh(wallGeometryBottom, wallMaterial);
+    this.wallMeshTop.position.set(0, -this.gameHeight / 2, 0);
+    this.wallMeshBottom.position.set(0, this.gameHeight / 2, 0);
+    this.scene.add(this.wallMeshTop, this.wallMeshBottom);
 
-    // Create ball
     const ballGeometry = new THREE.CircleGeometry(this.gameWidth * 0.01, 32);
     const ballMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     this.ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
     this.scene.add(this.ballMesh);
 
-    // Create paddles
     const paddleGeometry = new THREE.BoxGeometry(
       this.gameWidth * 0.02,
       this.gameHeight * 0.15,
@@ -486,6 +546,30 @@ export default class PlayerGame extends Component {
 
     this.renderer.setSize(this.gameWidth, this.gameHeight);
 
+    // Update wall positions and sizes
+    Body.setPosition(this.topWall, { x: 0, y: -this.gameHeight / 2 });
+    Body.setPosition(this.bottomWall, { x: 0, y: this.gameHeight / 2 });
+    Body.scale(this.topWall, this.gameWidth / this.topWall.bounds.max.x, 1);
+    Body.scale(
+      this.bottomWall,
+      this.gameWidth / this.bottomWall.bounds.max.x,
+      1
+    );
+
+    // Update Three.js wall meshes
+    this.wallMeshTop.scale.set(
+      this.gameWidth / this.wallMeshTop.geometry.parameters.width,
+      1,
+      1
+    );
+    this.wallMeshBottom.scale.set(
+      this.gameWidth / this.wallMeshBottom.geometry.parameters.width,
+      1,
+      1
+    );
+    this.wallMeshTop.position.set(0, -this.gameHeight / 2, 0);
+    this.wallMeshBottom.position.set(0, this.gameHeight / 2, 0);
+
     // Update paddle positions
     const newPaddleOffsetX = this.gameWidth * 0.4;
     Body.setPosition(this.paddle_one, {
@@ -502,9 +586,10 @@ export default class PlayerGame extends Component {
     const { Body } = Matter;
     Body.setPosition(this.ball, { x: 0, y: 0 });
     const angle = Math.random() * Math.PI * 2;
+    this.currentSpeed = this.initialSpeed; // 공 초기화시 속도도 초기화
     Body.setVelocity(this.ball, {
-      x: Math.cos(angle) * this.initialSpeed,
-      y: Math.sin(angle) * this.initialSpeed,
+      x: Math.cos(angle) * this.currentSpeed,
+      y: Math.sin(angle) * this.currentSpeed,
     });
   }
 
@@ -525,11 +610,40 @@ export default class PlayerGame extends Component {
     }
   }
 
+  handleCollision(event) {
+    const { pairs } = event;
+    pairs.forEach((pair) => {
+      const { bodyA, bodyB } = pair;
+      if (
+        (bodyA.label === 'ball' &&
+          (bodyB.label === 'topWall' || bodyB.label === 'bottomWall')) ||
+        (bodyB.label === 'ball' &&
+          (bodyA.label === 'topWall' || bodyA.label === 'bottomWall'))
+      ) {
+        this.increaseBallSpeed();
+      }
+    });
+  }
+
+  increaseBallSpeed() {
+    if (this.currentSpeed < this.maxSpeed) {
+      this.currentSpeed *= this.speedIncreaseRate;
+      this.currentSpeed = Math.min(this.currentSpeed, this.maxSpeed);
+
+      const velocity = this.ball.velocity;
+      const speed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2);
+      Matter.Body.setVelocity(this.ball, {
+        x: (velocity.x / speed) * this.currentSpeed,
+        y: (velocity.y / speed) * this.currentSpeed,
+      });
+    }
+  }
+
   endGame() {
     if (this.isGameOver) return;
-    var modal = document.getElementById('myModal');
-    var closeModalBtn = document.getElementsByClassName('close')[0];
-    var modalText = document.getElementById('modalText');
+    const modal = document.getElementById('myModal');
+    const modalText = document.getElementById('modalText');
+    const homeButton = document.getElementById('homeButton');
 
     let winner, loser;
     if (this.$state.scoreLeft >= 2) {
@@ -545,36 +659,33 @@ export default class PlayerGame extends Component {
     this.isGameOver = true;
 
     // Update tournament brackets
-    this.tournamentRounds[this.currentRound][this.currentMatch.index] = null;
-    this.tournamentRounds[this.currentRound][this.currentMatch.index + 1] =
-      null;
-    this.tournamentRounds[this.currentRound + 1][
-      Math.floor(this.currentMatch.index / 2)
-    ] = winner;
+    if (this.tournamentRounds && this.tournamentRounds[this.currentRound]) {
+      this.tournamentRounds[this.currentRound][this.currentMatch.index] = null;
+      this.tournamentRounds[this.currentRound][this.currentMatch.index + 1] =
+        null;
+      if (this.tournamentRounds[this.currentRound + 1]) {
+        this.tournamentRounds[this.currentRound + 1][
+          Math.floor(this.currentMatch.index / 2)
+        ] = winner;
+      }
+    }
 
     // Display result
-    // this.showGameResult(winner, loser);
+    if (modal && modalText) {
+      modal.style.display = 'block';
+      modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+    }
+
+    // Set up home button
+    if (homeButton) {
+      homeButton.onclick = () => {
+        if (modal) modal.style.display = 'none';
+        this.navigateToHome();
+      };
+    }
 
     // Start next match after a short delay
     setTimeout(() => this.startNextMatch(), 3000);
-
-    closeModalBtn.onclick = function () {
-      modal.style.display = 'none';
-    };
-
-    window.onclick = function (event) {
-      if (event.target == modal) {
-        modal.style.display = 'none';
-      }
-    };
-    // restartButton.onclick = () => {
-    //   modal.style.display = 'none';
-    //   this.navigateToNewGame();
-    // };
-    homeButton.onclick = () => {
-      modal.style.display = 'none';
-      this.navigateToHome();
-    };
   }
 
   navigateToNewGame() {
@@ -587,7 +698,6 @@ export default class PlayerGame extends Component {
     if (modal) {
       modal.style.display = 'none';
     }
-    // window.location.hash = '#ai-game';
   }
 
   navigateToHome() {
@@ -602,7 +712,10 @@ export default class PlayerGame extends Component {
 
     const modalText = modal.querySelector('#modalText');
     modal.style.display = 'block';
-    modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+    // modalText.textContent = `${winner.name} wins against ${loser.name}!`;
+    modalText.textContent = `${winner.name} ${this.getText('winner')} ${
+      loser.name
+    }!`;
 
     setTimeout(() => {
       this.hideModal();
@@ -616,7 +729,10 @@ export default class PlayerGame extends Component {
 
     const modalText = modal.querySelector('#modalText');
     modal.style.display = 'block';
-    modalText.textContent = `Tournament Winner: ${winner.name}!`;
+    // modalText.textContent = `Tournament Winner: ${winner.name}!`;
+    modalText.textContent = `${this.getText('tournamentWinner')} ${
+      winner.name
+    }!`;
   }
 
   hideModal() {
@@ -624,13 +740,6 @@ export default class PlayerGame extends Component {
     if (modal) {
       modal.style.display = 'none';
     }
-  }
-
-  navigateToHome() {
-    console.log('Navigating to home');
-    this.cleanup();
-    // this.hideModal();
-    window.location.hash = '#ingame-1';
   }
 
   updateAiTarget() {
@@ -700,12 +809,13 @@ export default class PlayerGame extends Component {
     this.updateAiTarget();
     this.moveAiPaddle();
 
+    // 공의 속도를 현재 설정된 속도로 유지
     const velocity = this.ball.velocity;
     const currentSpeed = Math.sqrt(velocity.x ** 2 + velocity.y ** 2);
-    if (Math.abs(currentSpeed - this.initialSpeed) > 0.0001) {
+    if (Math.abs(currentSpeed - this.currentSpeed) > 0.0001) {
       Matter.Body.setVelocity(this.ball, {
-        x: (velocity.x / currentSpeed) * this.initialSpeed,
-        y: (velocity.y / currentSpeed) * this.initialSpeed,
+        x: (velocity.x / currentSpeed) * this.currentSpeed,
+        y: (velocity.y / currentSpeed) * this.currentSpeed,
       });
     }
 
@@ -733,13 +843,11 @@ export default class PlayerGame extends Component {
   cleanup() {
     console.log('-----------cleanup-----------');
 
-    // Cancel animation frame
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
 
-    // Dispose Three.js objects
     if (this.renderer) {
       this.renderer.dispose();
       this.renderer.forceContextLoss();
@@ -752,7 +860,6 @@ export default class PlayerGame extends Component {
       this.scene = null;
     }
 
-    // Clear Matter.js world and engine
     if (this.world) {
       Matter.World.clear(this.world);
       this.world = null;
@@ -763,7 +870,6 @@ export default class PlayerGame extends Component {
       this.engine = null;
     }
 
-    // Clear DOM elements
     if (this.$target) {
       this.$target.innerHTML = '';
     }
@@ -772,7 +878,6 @@ export default class PlayerGame extends Component {
       this.scoreElement.parentNode.removeChild(this.scoreElement);
     }
 
-    // Reset game state
     this.isGameOver = true;
     this.ball = null;
     this.ballMesh = null;

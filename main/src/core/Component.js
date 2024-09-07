@@ -7,6 +7,9 @@ export default class Component {
     console.log('Constructor');
     this.$target = $target;
     this.$props = $props;
+    this.$state = {
+      language: sessionStorage.getItem('language') || 'en',
+    };
 
     this.setup();
     this.render();
@@ -73,5 +76,12 @@ export default class Component {
       selector,
       callback: wrappedCallback,
     });
+  }
+  setLanguage(lang) {
+    sessionStorage.setItem('language', lang);
+    this.setState({ language: lang });
+  }
+  getLanguage() {
+    return this.$state.language;
   }
 }

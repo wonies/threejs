@@ -25,9 +25,14 @@ export default class AiGame extends Component {
     this.lastBallPosition = { x: 0, y: 0 };
     this.lastUpdateTime = Date.now();
     this.initialSpeed = this.gameWidth * 0.003;
+    this.topWall = null;
+    this.bottomWall = null;
+    this.wallMeshTop = null;
+    this.wallMeshBottom = null;
     this.init();
     console.log('-----------constructor-----------');
     this.setup();
+    this.language = sessionStorage.getItem('language');
   }
 
   setup() {
@@ -54,29 +59,69 @@ export default class AiGame extends Component {
   }
 
   template() {
+    const language = this.language;
     const { scoreLeft, scoreRight, image, playerLeft, playerRight } =
       this.$state;
     return `
-    <div class="game-canvas">
+     <div class="game-canvas">
       <div class="game-ui">
         <div class="score-display">${scoreLeft} : ${scoreRight}</div>
-        <div class="playerLeft-display">${playerLeft}</div>
-        <div class="playerRight-display">${playerRight}</div>
+        <div class="playerLeft-display">${this.getPlayerName(
+          language,
+          'left',
+          playerLeft
+        )}</div>
+        <div class="playerRight-display">${this.getPlayerName(
+          language,
+          'right',
+          playerRight
+        )}</div>
+      </div>
+    </div>
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <h2 id="modalText"></h2>
+        <div class="modal-buttons">
+          <button id="restartButton">${this.getButtonText(
+            language,
+            'restart'
+          )}</button>
+          <button id="homeButton">${this.getButtonText(
+            language,
+            'home'
+          )}</button>
         </div>
-        </div>
-         <div id="myModal" class="modal">
-          <div class="modal-content">
-            <h2 id="modalText"></h2>
-            <div class="modal-buttons">
-              <button id="restartButton">다시하기</button>
-              <button id="homeButton">홈으로 가기</button>
-            </div>
-          </div>
-        </div>
-        </div>
+      </div>
+    </div>
         `;
   }
-  // <div class="player-display">${playerLeft} vs ${playerRight}</div>
+
+  getPlayerName(lang, side, name) {
+    const texts = {
+      en: { left: 'Human', right: 'AI' },
+      ko: { left: '사람', right: '인공지능' },
+      ja: { left: '人間', right: 'AI' },
+    };
+    return name || texts[lang]?.[side] || texts.en[side];
+  }
+
+  getButtonText(lang, type) {
+    const texts = {
+      en: { restart: 'Restart', home: 'Go to Home' },
+      ko: { restart: '다시하기', home: '홈으로 가기' },
+      ja: { restart: 'リスタート', home: 'ホームへ' },
+    };
+    return texts[lang]?.[type] || texts.en[type];
+  }
+
+  getWinnerText(lang, winner) {
+    const texts = {
+      en: { human: 'Human WIN!', ai: 'AI WIN!' },
+      ko: { human: '사람 승리!', ai: '인공지능 승리!' },
+      ja: { human: '人間の勝利!', ai: 'AIの勝利!' },
+    };
+    return texts[lang]?.[winner] || texts.en[winner];
+  }
 
   loadBackground() {
     const loader = new THREE.TextureLoader();
@@ -133,20 +178,20 @@ export default class AiGame extends Component {
       });
     };
 
-    const topWall = createWall(
+    this.topWall = createWall(
       0,
       -this.gameHeight / 2,
       this.gameWidth,
       wallThickness
     );
-    const bottomWall = createWall(
+    this.bottomWall = createWall(
       0,
       this.gameHeight / 2,
       this.gameWidth,
       wallThickness
     );
 
-    World.add(this.world, [topWall, bottomWall]);
+    World.add(this.world, [this.topWall, this.bottomWall]);
   }
 
   createBall() {
@@ -168,6 +213,7 @@ export default class AiGame extends Component {
       y: Math.sin(angle) * this.initialSpeed,
     });
   }
+
   createPaddles() {
     const { Bodies, World } = Matter;
     const paddleWidth = this.gameWidth * 0.02;
@@ -212,11 +258,11 @@ export default class AiGame extends Component {
     const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const wallGeometryTop = new THREE.BoxGeometry(this.gameWidth, 10, 0);
     const wallGeometryBottom = new THREE.BoxGeometry(this.gameWidth, 10, 0);
-    const wallMeshTop = new THREE.Mesh(wallGeometryTop, wallMaterial);
-    const wallMeshBottom = new THREE.Mesh(wallGeometryBottom, wallMaterial);
-    wallMeshTop.position.set(0, -this.gameHeight / 2, 0);
-    wallMeshBottom.position.set(0, this.gameHeight / 2, 0);
-    this.scene.add(wallMeshTop, wallMeshBottom);
+    this.wallMeshTop = new THREE.Mesh(wallGeometryTop, wallMaterial);
+    this.wallMeshBottom = new THREE.Mesh(wallGeometryBottom, wallMaterial);
+    this.wallMeshTop.position.set(0, -this.gameHeight / 2, 0);
+    this.wallMeshBottom.position.set(0, this.gameHeight / 2, 0);
+    this.scene.add(this.wallMeshTop, this.wallMeshBottom);
 
     // Create ball
     const ballGeometry = new THREE.CircleGeometry(this.gameWidth * 0.01, 32);
@@ -243,9 +289,7 @@ export default class AiGame extends Component {
     this.scoreElement.style.left = '50%';
     this.scoreElement.style.transform = 'translateX(-50%)';
     this.scoreElement.style.color = 'white';
-    // this.scoreElement.style.fontSize = '24px';
     this.scoreElement.style.fontFamily = 'Arial, sans-serif';
-    // this.scoreElement.textContent = '0 - 0';
     document.body.appendChild(this.scoreElement);
   }
 
@@ -311,6 +355,30 @@ export default class AiGame extends Component {
       x: newPaddleOffsetX,
       y: this.paddle_two.position.y,
     });
+
+    // Update wall positions and sizes
+    Body.setPosition(this.topWall, { x: 0, y: -this.gameHeight / 2 });
+    Body.setPosition(this.bottomWall, { x: 0, y: this.gameHeight / 2 });
+    Body.scale(this.topWall, this.gameWidth / this.topWall.bounds.max.x, 1);
+    Body.scale(
+      this.bottomWall,
+      this.gameWidth / this.bottomWall.bounds.max.x,
+      1
+    );
+
+    // Update Three.js wall meshes
+    this.wallMeshTop.scale.set(
+      this.gameWidth / this.wallMeshTop.geometry.parameters.width,
+      1,
+      1
+    );
+    this.wallMeshBottom.scale.set(
+      this.gameWidth / this.wallMeshBottom.geometry.parameters.width,
+      1,
+      1
+    );
+    this.wallMeshTop.position.set(0, -this.gameHeight / 2, 0);
+    this.wallMeshBottom.position.set(0, this.gameHeight / 2, 0);
   }
 
   resetBall() {
@@ -331,7 +399,6 @@ export default class AiGame extends Component {
       this.setState({ scoreRight: this.$state.scoreRight + 1 });
       this.resetBall();
     }
-    // this.scoreElement.textContent = `${this.playerOnePoint} - ${this.playerTwoPoint}`;
   }
 
   updateScoreDisplay() {
@@ -349,11 +416,11 @@ export default class AiGame extends Component {
 
     if (this.$state.scoreLeft >= 1) {
       modal.style.display = 'block';
-      modalText.textContent = 'Human WIN!';
+      modalText.textContent = this.getWinnerText(this.language, 'human');
       this.isGameOver = true;
     } else if (this.$state.scoreRight >= 1) {
       modal.style.display = 'block';
-      modalText.textContent = 'Ai Win!';
+      modalText.textContent = this.getWinnerText(this.language, 'ai');
       this.isGameOver = true;
     }
 
@@ -374,9 +441,6 @@ export default class AiGame extends Component {
       modal.style.display = 'none';
       this.navigateToHome();
     };
-    // if (this.isGameOver) {
-    //   this.cleanup();
-    // }
   }
 
   resetGame() {
@@ -387,20 +451,18 @@ export default class AiGame extends Component {
       playerRight: 'Ai',
     });
     this.isGameOver = false;
-    // 다른 필요한 상태 초기화
   }
+
   navigateToNewGame() {
     console.log('Navigating to new game');
     this.cleanup();
-    this.resetGame(); // 게임 상태 초기화
-    this.init(); // 게임 재초기화
+    this.resetGame();
+    this.init();
 
-    // 모달 닫기
     const modal = document.getElementById('myModal');
     if (modal) {
       modal.style.display = 'none';
     }
-    // window.location.hash = '#ai-game';
   }
 
   navigateToHome() {
@@ -408,6 +470,7 @@ export default class AiGame extends Component {
     this.cleanup();
     window.location.hash = '#ingame-1';
   }
+
   updateAiTarget() {
     const currentTime = Date.now();
     if (currentTime - this.lastUpdateTime >= 1000) {
@@ -440,7 +503,6 @@ export default class AiGame extends Component {
     });
   }
 
-  //add
   setEvent() {
     this.addEventListeners();
   }
@@ -505,13 +567,11 @@ export default class AiGame extends Component {
   cleanup() {
     console.log('-----------cleanup-----------');
 
-    // Cancel animation frame
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
 
-    // Dispose Three.js objects
     if (this.renderer) {
       this.renderer.dispose();
       this.renderer.forceContextLoss();
@@ -524,7 +584,6 @@ export default class AiGame extends Component {
       this.scene = null;
     }
 
-    // Clear Matter.js world and engine
     if (this.world) {
       Matter.World.clear(this.world);
       this.world = null;
@@ -535,11 +594,9 @@ export default class AiGame extends Component {
       this.engine = null;
     }
 
-    // Remove event listeners
     document.removeEventListener('keydown', this.handleKeyPress);
     window.removeEventListener('resize', this.handleResize);
 
-    // Clear DOM elements
     if (this.$target) {
       this.$target.innerHTML = '';
     }
@@ -548,7 +605,6 @@ export default class AiGame extends Component {
       this.scoreElement.parentNode.removeChild(this.scoreElement);
     }
 
-    // Reset game state
     this.isGameOver = true;
     this.ball = null;
     this.paddle_one = null;

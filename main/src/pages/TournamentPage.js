@@ -13,7 +13,8 @@ export default class TournamentPage extends InGamePage {
   }
 
   template() {
-    const { image, opt, opt2, opt3 } = this.$state;
+    const { image } = this.$state;
+    const language = sessionStorage.getItem('language');
     return `
         <div class="ingame-container">
             <div class="account-image">
@@ -21,17 +22,38 @@ export default class TournamentPage extends InGamePage {
             </div>
             <div class="pick-option">
                 <div class="option" data-option="select1">
-                    <span>${opt}</span>
+                    <span>${this.getOptionText('two', language)}</span>
                 </div>
                 <div class="option" data-option="select2">
-                    <span>${opt2}</span>
+                    <span>${this.getOptionText('four', language)}</span>
                 </div>
                 <div class="option" data-option="select3">
-                    <span>${opt3}</span>
+                    <span>${this.getOptionText('eight', language)}</span>
                 </div>
             </div>
         </div>
         `;
+  }
+
+  getOptionText(option, lang) {
+    const texts = {
+      two: {
+        en: '2 Players',
+        ko: '2명',
+        ja: '2人',
+      },
+      four: {
+        en: '4 Players',
+        ko: '4명',
+        ja: '4人',
+      },
+      eight: {
+        en: '8 Players',
+        ko: '8명',
+        ja: '8人',
+      },
+    };
+    return texts[option][lang] || texts[option].en;
   }
 
   removeEvent() {

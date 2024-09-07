@@ -20,11 +20,12 @@ export default class WaitingRoom extends InGamePage {
 
   template() {
     const { image, playerNames } = this.$state;
+    const language = sessionStorage.getItem('language');
 
     const playerList = playerNames
       .map(
         (name, index) => `
-            <div>Player ${index + 1}: ${name}</div>
+            <div>${this.getPlayerText(language, index + 1)}: ${name}</div>
         `
       )
       .join('');
@@ -35,24 +36,94 @@ export default class WaitingRoom extends InGamePage {
                 <img src="${image}" alt="pong">
             </div>
             <div class="pick-option">
-                <h1>New Challenge!</h1>
-                <div>Are you ready?</div>
+                <h1>${this.getChallengeText(language)}</h1>
+                <div>${this.getReadyText(language)}</div>
                 ${playerList}
-                ${this.getGameStartButton()}
+                ${this.getGameStartButton(language)}
             </div>
         </div>
         `;
   }
 
-  getGameStartButton() {
+  getGameStartButton(language) {
     const playerCount = this.$state.playerNames.length;
     if (playerCount < 2) {
-      return '<div>Waiting for more players...</div>';
+      return `<div>${this.getWaitingText(language)}</div>`;
     } else if (playerCount === 2) {
-      return '<button class="start-game">Start 1v1 Game</button>';
+      return `<button class="start-game">${this.getStartGameText(
+        language,
+        '1v1'
+      )}</button>`;
     } else {
-      return '<button class="start-tournament">Start Tournament</button>';
+      return `<button class="start-tournament">${this.getStartGameText(
+        language,
+        'tournament'
+      )}</button>`;
     }
+  }
+
+  getChallengeText(lang) {
+    const texts = {
+      en: 'New Challenge!',
+      ko: '새로운 도전!',
+      ja: '新しいチャレンジ！',
+    };
+    return texts[lang] || texts.en;
+  }
+
+  getReadyText(lang) {
+    const texts = {
+      en: 'Are you ready?',
+      ko: '준비되셨나요?',
+      ja: '準備はできましたか？',
+    };
+    return texts[lang] || texts.en;
+  }
+
+  getPlayerText(lang, number) {
+    const texts = {
+      en: `Player ${number}`,
+      ko: `플레이어 ${number}`,
+      ja: `プレイヤー${number}`,
+    };
+    return texts[lang] || texts.en;
+  }
+
+  getWaitingText(lang) {
+    const texts = {
+      en: 'Waiting for more players...',
+      ko: '더 많은 플레이어를 기다리는 중...',
+      ja: 'プレイヤーを待っています...',
+    };
+    return texts[lang] || texts.en;
+  }
+
+  getStartGameText(lang, mode) {
+    const texts = {
+      en: {
+        '1v1': 'Start 1v1 Game',
+        tournament: 'Start Tournament',
+      },
+      ko: {
+        '1v1': '1대1 게임 시작',
+        tournament: '토너먼트 시작',
+      },
+      ja: {
+        '1v1': '1対1ゲーム開始',
+        tournament: 'トーナメント開始',
+      },
+    };
+    return texts[lang]?.[mode] || texts.en[mode];
+  }
+
+  getAnonymousText() {
+    const lang = this.getLanguage();
+    const texts = {
+      en: 'Anonymous',
+      ko: '익명',
+      ja: '匿名',
+    };
+    return texts[lang] || texts.en;
   }
 
   handleGameStart() {

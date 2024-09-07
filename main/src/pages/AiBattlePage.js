@@ -16,13 +16,15 @@ export default class AiBattlePage extends InGamePage {
     this.$state = {
       ...this.$state,
       image: '../../main/public/aiphoto.png',
-      opt: '나랑 진짜 게임할거야? 쉽지않을걸..',
+      // opt: '나랑 진짜 게임할거야? 쉽지않을걸..',
     };
     setTimeout(() => this.startTypingEffect(), 0);
   }
 
   template() {
-    const { image, opt } = this.$state;
+    const { image } = this.$state;
+    const language = sessionStorage.getItem('language');
+
     return `
         <div class="ingame-container">
         <div class="account-image">
@@ -31,11 +33,31 @@ export default class AiBattlePage extends InGamePage {
         <div class="pick-option">
             <div class="option" data-option="hon">
             <span id="typing-text"></span>
-             <button id="hon" class="hon" style="display: none;">혼내주러가기</button>
+             <button id="hon" class="hon" style="display: none;">${this.getButtonText(
+               language
+             )}</button>
             </div>
         </div>
         </div>
       `;
+  }
+
+  getTypingText(lang) {
+    const texts = {
+      en: "Are you really going to play with me? It won't be easy...",
+      ko: '나랑 진짜 게임할거야? 쉽지않을걸..',
+      ja: '本当に私とゲームするの？簡単じゃないよ...',
+    };
+    return texts[lang] || texts.en;
+  }
+
+  getButtonText(lang) {
+    const texts = {
+      en: "Let's teach a lesson",
+      ko: '혼내주러가기',
+      ja: 'お仕置きしに行く',
+    };
+    return texts[lang] || texts.en;
   }
 
   startTypingEffect() {
@@ -43,7 +65,8 @@ export default class AiBattlePage extends InGamePage {
     const button = document.getElementById('hon');
     if (!textElement || !button) return;
 
-    const text = this.$state.opt;
+    const language = sessionStorage.getItem('language');
+    const text = this.getTypingText(language);
     let index = 0;
 
     textElement.textContent = '';

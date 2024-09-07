@@ -13,6 +13,7 @@ export default class TourStandByFour extends TourStandBy {
 
   template() {
     const { image, optCount, optArray } = this.$state;
+    const language = sessionStorage.getItem('language');
 
     const inputs = Array(optCount)
       .fill(0)
@@ -20,7 +21,9 @@ export default class TourStandByFour extends TourStandBy {
         (_, index) => `
             <input type="text" class="match-opt" data-option="opt${
               index + 1
-            }" value="${optArray[index]}">
+            }" value="${
+          optArray[index]
+        }" placeholder="${this.getPlaceholderText(language, index + 1)}">
         `
       )
       .join('');
@@ -32,10 +35,36 @@ export default class TourStandByFour extends TourStandBy {
             </div>
                 <div class="pick-option">
                     ${inputs}
-                    <button class="match-btn">MATCH</button>
+                    <button class="match-btn">${this.getButtonText(
+                      language
+                    )}</button>
                 </div>
         </div>
       `;
+  }
+
+  getPlaceholderText(lang, playerNumber) {
+    const texts = {
+      en: `Enter Player ${playerNumber} name`,
+      ko: `플레이어 ${playerNumber} 이름 입력`,
+      ja: `プレイヤー${playerNumber}の名前を入力`,
+    };
+    return texts[lang] || texts.en;
+  }
+
+  getButtonText(lang) {
+    const texts = {
+      en: 'MATCH',
+      ko: '시이작',
+      ja: 'マッチ',
+    };
+    return texts[lang] || texts.en;
+  }
+  removeEvent() {
+    if (this.$target && this.clickHandler) {
+      this.$target.removeEventListener('click', this.clickHandler);
+      this.clickHandler = null;
+    }
   }
 
   removeEvent() {
