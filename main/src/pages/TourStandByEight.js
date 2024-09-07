@@ -96,7 +96,7 @@ export default class TourStandByEight extends TourStandBy {
         .querySelector(`.match-opt[data-option="opt${i}"]`)
         .value.trim();
 
-      if (value === '') {
+      if (value === '' || value == null) {
         value = `anonymous${anonymousCount}`;
         anonymousCount++;
       }
@@ -104,9 +104,8 @@ export default class TourStandByEight extends TourStandBy {
       optValues[`opt${i}`] = value;
       console.log(`Option ${i}:`, value);
     }
-
+    //  console.log(sessionStorage.getItem)
     sessionStorage.setItem('players', JSON.stringify(optValues));
-    console.log('Values saved to sessionStorage');
   }
 
   goMatchRoom() {

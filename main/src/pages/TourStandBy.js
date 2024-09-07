@@ -101,7 +101,7 @@ export default class TourStandBy extends Component {
         .querySelector(`.match-opt[data-option="opt${i}"]`)
         .value.trim();
 
-      if (value === '') {
+      if (value === '' || value == null) {
         value = `anonymous${anonymousCount}`;
         anonymousCount++;
       }
